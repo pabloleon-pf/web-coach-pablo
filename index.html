@@ -7,89 +7,89 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .neon-text { color: #22c55e; }
-        .bg-card { background-color: #1e293b; border: 1px solid #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .accent-text { color: #f97316; } /* Naranja vibrante */
+        .bg-card { background-color: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
     </style>
 </head>
 <body class="antialiased">
     
-    <header class="min-h-screen flex flex-col justify-center items-center text-center px-6 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-800 z-0"></div>
+    <header class="min-h-screen flex flex-col justify-center items-center text-center px-6 relative overflow-hidden bg-white">
+        <div class="absolute inset-0 bg-gradient-to-b from-gray-50 to-gray-200 z-0"></div>
         <div class="relative z-10 max-w-4xl mx-auto">
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
-                Domina el Tatami con <span class="neon-text">Ciencia y Fuerza</span>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-slate-900">
+                Domina el Tatami con <span class="accent-text">Ciencia y Fuerza</span>
             </h1>
-            <p class="text-xl md:text-2xl text-slate-300 mb-10 max-w-2xl mx-auto">
+            <p class="text-xl md:text-2xl text-slate-600 mb-10 max-w-2xl mx-auto">
                 Planificaciones de alto rendimiento para atletas de Grappling, BJJ y MMA. Deja las rutinas genéricas y optimiza tu rendimiento con un sistema 100% respaldado por evidencia científica.
             </p>
-            <a href="https://wa.me/56945328686?text=Hola%20Pablo,%20busco%20potenciar%20mi%20FUERZA" target="_blank" class="inline-block bg-green-500 hover:bg-green-400 text-slate-900 font-bold py-4 px-8 rounded-full text-lg transition transform hover:scale-105 shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+            <a href="https://wa.me/56945328686?text=Hola%20Pablo,%20busco%20potenciar%20mi%20FUERZA" target="_blank" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-full text-lg transition transform hover:scale-105 shadow-[0_0_15px_rgba(249,115,22,0.4)]">
                 📲 Solicitar Evaluación
             </a>
         </div>
     </header>
 
-    <section class="py-20 px-6 bg-slate-900">
+    <section class="py-20 px-6 bg-slate-50">
         <div class="max-w-6xl mx-auto">
-            <h2 class="text-3xl md:text-5xl font-bold mb-12 text-center">No adivinamos, <span class="neon-text">medimos.</span></h2>
+            <h2 class="text-3xl md:text-5xl font-bold mb-12 text-center text-slate-900">No adivinamos, <span class="accent-text">medimos.</span></h2>
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="bg-card p-8 rounded-2xl">
+                <div class="bg-card p-8 rounded-2xl transition hover:shadow-lg">
                     <div class="text-4xl mb-4">🧬</div>
-                    <h3 class="text-xl font-bold mb-3">Control de Carga</h3>
-                    <p class="text-slate-400">Monitoreo preciso del esfuerzo (sRPE) para maximizar adaptaciones y evitar el sobreentrenamiento antes de una competencia.</p>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">Control de Carga</h3>
+                    <p class="text-slate-600">Monitoreo preciso del esfuerzo (sRPE) para maximizar adaptaciones y evitar el sobreentrenamiento antes de una competencia.</p>
                 </div>
-                <div class="bg-card p-8 rounded-2xl">
+                <div class="bg-card p-8 rounded-2xl transition hover:shadow-lg border-b-4 border-orange-500">
                     <div class="text-4xl mb-4">⚡</div>
-                    <h3 class="text-xl font-bold mb-3">Potencia y Explosividad</h3>
-                    <p class="text-slate-400">Implementación de protocolos como la Potenciación Post-Activación (PAP) para que llegues a los combates en tu peak de rendimiento.</p>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">Fuerza y Potencia</h3>
+                    <p class="text-slate-600">Implementación de protocolos PAPE mediante métodos complex (ascendentes, descendentes y de contraste) para alcanzar tu peak competitivo.</p>
                 </div>
-                <div class="bg-card p-8 rounded-2xl">
+                <div class="bg-card p-8 rounded-2xl transition hover:shadow-lg">
                     <div class="text-4xl mb-4">📊</div>
-                    <h3 class="text-xl font-bold mb-3">Periodización Estratégica</h3>
-                    <p class="text-slate-400">Modelos estructurados (como la periodización ATR) adaptados a tu calendario competitivo y necesidades específicas.</p>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900">Periodización Estratégica</h3>
+                    <p class="text-slate-600">Modelos estructurados de entrenamiento (por bloques y ATR) adaptados milimétricamente a tu calendario competitivo.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="py-20 px-6 bg-slate-800">
+    <section class="py-20 px-6 bg-white">
         <div class="max-w-4xl mx-auto text-center">
-            <h2 class="text-3xl md:text-5xl font-bold mb-8">Programas de Acondicionamiento</h2>
-            <p class="text-xl text-slate-300 mb-10">Planes diseñados a medida con un modelo de mensualidad fija para asegurar un seguimiento profesional, continuo y enfocado en resultados.</p>
-            <div class="bg-card p-8 md:p-12 rounded-2xl text-left border-l-4 border-green-500">
-                <ul class="space-y-4 text-lg text-slate-300">
-                    <li class="flex items-center">✅ <span class="ml-3">Evaluación física integral inicial.</span></li>
-                    <li class="flex items-center">✅ <span class="ml-3">Batería de ejercicios específicos para tus demandas biomecánicas.</span></li>
-                    <li class="flex items-center">✅ <span class="ml-3">Construcción de fuerza base y campamentos de preparación competitiva.</span></li>
-                    <li class="flex items-center">✅ <span class="ml-3">Seguimiento de métricas a través de nuestra aplicación personalizada.</span></li>
+            <h2 class="text-3xl md:text-5xl font-bold mb-8 text-slate-900">Programas de Acondicionamiento</h2>
+            <p class="text-xl text-slate-600 mb-10">Planes diseñados a medida con un modelo de mensualidad fija para asegurar un seguimiento profesional, continuo y enfocado en resultados.</p>
+            <div class="bg-slate-50 p-8 md:p-12 rounded-2xl text-left border-l-4 border-orange-500 shadow-sm">
+                <ul class="space-y-4 text-lg text-slate-700">
+                    <li class="flex items-center"><span class="text-orange-500 mr-3 font-bold">✓</span> Evaluación física integral inicial.</li>
+                    <li class="flex items-center"><span class="text-orange-500 mr-3 font-bold">✓</span> Batería de ejercicios específicos para tus demandas biomecánicas.</li>
+                    <li class="flex items-center"><span class="text-orange-500 mr-3 font-bold">✓</span> Construcción de fuerza base y campamentos de preparación competitiva.</li>
+                    <li class="flex items-center"><span class="text-orange-500 mr-3 font-bold">✓</span> Seguimiento de métricas a través de nuestra aplicación personalizada.</li>
                 </ul>
             </div>
         </div>
     </section>
 
-    <section class="py-20 px-6 bg-slate-900">
+    <section class="py-20 px-6 bg-slate-50">
         <div class="max-w-5xl mx-auto">
-            <h2 class="text-3xl md:text-5xl font-bold mb-12 text-center text-slate-100">Sobre el Coach <span class="text-white">Pablo León</span></h2>
-            <div class="bg-slate-800 p-8 md:p-12 rounded-3xl border border-slate-700 shadow-xl">
-                <ul class="space-y-6 text-lg text-slate-300">
+            <h2 class="text-3xl md:text-5xl font-bold mb-12 text-center text-slate-900">Sobre el Coach <span class="accent-text">Pablo León</span></h2>
+            <div class="bg-white p-8 md:p-12 rounded-3xl shadow-lg border border-slate-100">
+                <ul class="space-y-6 text-lg text-slate-700">
                     <li class="flex items-start">
-                        <span class="text-green-500 mr-4 text-2xl">🎓</span>
+                        <span class="text-orange-500 mr-4 text-2xl">🎓</span>
                         <span>Entrenador en Deporte y Actividad Física (Univ. Santo Tomás), aprobado con <strong>Distinción Máxima</strong>. Licenciado en Ciencias del Deporte.</span>
                     </li>
                     <li class="flex items-start">
-                        <span class="text-green-500 mr-4 text-2xl">🥇</span>
+                        <span class="text-orange-500 mr-4 text-2xl">🥇</span>
                         <span>Técnico de Nivel Superior en Preparación Física, aprobado con <strong>Distinción Máxima</strong>.</span>
                     </li>
                     <li class="flex items-start">
-                        <span class="text-green-500 mr-4 text-2xl">🏛️</span>
+                        <span class="text-orange-500 mr-4 text-2xl">🏛️</span>
                         <span>Certificaciones oficiales por el <strong>Comité Olímpico de Chile</strong> en Entrenamiento y Gestión Deportiva.</span>
                     </li>
                     <li class="flex items-start">
-                        <span class="text-green-500 mr-4 text-2xl">🔬</span>
+                        <span class="text-orange-500 mr-4 text-2xl">🔬</span>
                         <span>Expositor en el 1º Congreso Internacional de Educación Física, Salud y Deportes (UMCE 2024), presentando investigaciones sobre el índice de fuerza.</span>
                     </li>
                     <li class="flex items-start">
-                        <span class="text-green-500 mr-4 text-2xl">🏟️</span>
+                        <span class="text-orange-500 mr-4 text-2xl">🏟️</span>
                         <span>Participación interna en megaeventos deportivos (Apoyo de resultados en <strong>Juegos Panamericanos Santiago 2023</strong>).</span>
                     </li>
                 </ul>
@@ -97,15 +97,18 @@
         </div>
     </section>
 
-    <section class="py-24 px-6 bg-gradient-to-t from-black to-slate-900 text-center">
-        <h2 class="text-4xl md:text-6xl font-extrabold mb-8">¿Listo para subir tu nivel físico?</h2>
-        <p class="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">Envíame un mensaje con la palabra "FUERZA" y empecemos a construir tu mejor versión para tu próxima competencia.</p>
-        <a href="https://wa.me/56945328686?text=Hola%20Pablo,%20busco%20potenciar%20mi%20FUERZA" target="_blank" class="inline-block bg-white text-black hover:bg-green-400 hover:text-slate-900 font-bold py-4 px-10 rounded-full text-xl transition transform hover:scale-105">
-            💬 Enviar DM ahora
-        </a>
+    <section class="py-24 px-6 bg-slate-900 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-orange-500 opacity-10"></div>
+        <div class="relative z-10">
+            <h2 class="text-4xl md:text-6xl font-extrabold mb-8 text-white">¿Listo para subir tu nivel físico?</h2>
+            <p class="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">Envíame un mensaje con la palabra "FUERZA" y empecemos a construir tu mejor versión para tu próxima competencia.</p>
+            <a href="https://wa.me/56945328686?text=Hola%20Pablo,%20busco%20potenciar%20mi%20FUERZA" target="_blank" class="inline-block bg-orange-500 text-white hover:bg-orange-600 font-bold py-4 px-10 rounded-full text-xl transition transform hover:scale-105 shadow-lg">
+                💬 Enviar DM ahora
+            </a>
+        </div>
     </section>
     
-    <footer class="py-6 text-center text-slate-500 bg-black text-sm">
+    <footer class="py-6 text-center text-slate-500 bg-white border-t border-slate-200 text-sm">
         <p>&copy; 2026 Coach Pablo León. Resultados basados en ciencia.</p>
     </footer>
 

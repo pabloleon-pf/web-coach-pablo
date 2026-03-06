@@ -32,6 +32,7 @@
         const IconZap = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
         const IconTarget = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
         const IconLogOut = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+        const IconArrowUp = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>;
 
         const mockAthleteData = {
             name: "Matias",
@@ -43,19 +44,29 @@
                 nextGoal: "Comp. 14 Marzo"
             },
             power: {
-                cmj: { current: "42 cm", prev: "40 cm", trend: "up" },
-                abalakov: { current: "47 cm", prev: "46 cm", trend: "up" }
+                date: "Última medición: 05 de Marzo, 2026",
+                cmj: { current: "42 cm", prev: "40 cm", diff: "+2 cm" },
+                abalakov: { current: "47 cm", prev: "46 cm", diff: "+1 cm" }
             },
             strength: {
-                squat: "140 kg",
-                bench: "95 kg",
-                deadlift: "165 kg"
+                date: "Última medición: 03 de Marzo, 2026",
+                squat: { current: "140 kg", diff: "+5 kg" },
+                bench: { current: "95 kg", diff: "+2.5 kg" },
+                deadlift: { current: "165 kg", diff: "+10 kg" }
             },
             grappling: {
-                gripStrength: "58 kg",
-                kimonoReps: "12 reps"
+                date: "Última medición: 01 de Marzo, 2026",
+                gripStrength: { current: "58 kg", diff: "+1.5 kg" },
+                kimonoReps: { current: "12 reps", diff: "+2 reps" }
             }
         };
+
+        const TrendBadge = ({ diff }) => (
+            <span className="flex items-center text-xs text-green-500 font-semibold bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">
+                <IconArrowUp className="w-3 h-3 mr-0.5" />
+                {diff}
+            </span>
+        );
 
         const LoginView = ({ onLogin }) => {
             return (
@@ -79,7 +90,7 @@
                                         <input 
                                             type="email" 
                                             className="w-full bg-slate-950 border border-slate-800 rounded-lg py-3 pl-10 pr-4 text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
-                                            placeholder="atleta@checkmat.com"
+                                            placeholder="atleta@correo.com"
                                             required
                                         />
                                     </div>
@@ -153,66 +164,86 @@
                             </div>
                         </div>
 
-                        <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                            <div className="bg-slate-800/50 p-4 border-b border-slate-800 flex items-center gap-2">
-                                <IconZap className="w-5 h-5 text-yellow-500" />
-                                <h3 className="font-bold tracking-wide">Potencia (Tren Inferior)</h3>
+                        <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                            <div className="bg-slate-800/50 p-4 border-b border-slate-800 flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                    <IconZap className="w-5 h-5 text-yellow-500" />
+                                    <h3 className="font-bold tracking-wide">Potencia (Tren Inferior)</h3>
+                                </div>
+                                <span className="text-xs text-slate-400">{data.power.date}</span>
                             </div>
                             <div className="p-4">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <span className="text-xs text-slate-400 block mb-1">CMJ (Countermovement)</span>
+                                    <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-800/50">
+                                        <span className="text-xs text-slate-400 block mb-1 font-medium">CMJ</span>
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-2xl font-bold text-white">{data.power.cmj.current}</span>
-                                            <span className="text-xs text-green-500 font-semibold bg-green-500/10 px-1.5 py-0.5 rounded">↑ {data.power.cmj.prev}</span>
+                                            <TrendBadge diff={data.power.cmj.diff} />
                                         </div>
                                     </div>
-                                    <div>
-                                        <span className="text-xs text-slate-400 block mb-1">Abalakov</span>
+                                    <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-800/50">
+                                        <span className="text-xs text-slate-400 block mb-1 font-medium">Abalakov</span>
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-2xl font-bold text-white">{data.power.abalakov.current}</span>
-                                            <span className="text-xs text-green-500 font-semibold bg-green-500/10 px-1.5 py-0.5 rounded">↑ {data.power.abalakov.prev}</span>
+                                            <TrendBadge diff={data.power.abalakov.diff} />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </section>
 
-                        <section className="bg-gradient-to-br from-orange-900/40 to-slate-900 border border-orange-900/30 rounded-xl overflow-hidden relative">
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
-                                <IconTarget className="w-24 h-24" />
+                        <section className="bg-gradient-to-br from-orange-950/40 to-slate-900 border border-orange-900/30 rounded-xl overflow-hidden relative shadow-lg">
+                            <div className="absolute top-0 right-0 p-4 opacity-5">
+                                <IconTarget className="w-32 h-32" />
                             </div>
-                            <div className="p-4 border-b border-orange-900/20 relative z-10">
+                            <div className="p-4 border-b border-orange-900/20 relative z-10 flex flex-col gap-1">
                                 <h3 className="font-bold tracking-wide text-orange-400">Rendimiento Específico (Tatami)</h3>
+                                <span className="text-xs text-slate-400">{data.grappling.date}</span>
                             </div>
                             <div className="p-4 grid grid-cols-2 gap-4 relative z-10">
-                                <div className="bg-slate-900/50 backdrop-blur rounded-lg p-3 border border-slate-800">
-                                    <span className="text-xs text-slate-300 block mb-1">Grip Strength (Agarre)</span>
-                                    <span className="text-xl font-bold text-white">{data.grappling.gripStrength}</span>
+                                <div className="bg-slate-900/60 backdrop-blur rounded-lg p-3 border border-slate-800 shadow-inner">
+                                    <span className="text-xs text-slate-300 block mb-1 font-medium">Agarre (Grip)</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-xl font-bold text-white">{data.grappling.gripStrength.current}</span>
+                                        <TrendBadge diff={data.grappling.gripStrength.diff} />
+                                    </div>
                                 </div>
-                                <div className="bg-slate-900/50 backdrop-blur rounded-lg p-3 border border-slate-800">
-                                    <span className="text-xs text-slate-300 block mb-1">Reps con Kimono</span>
-                                    <span className="text-xl font-bold text-white">{data.grappling.kimonoReps}</span>
+                                <div className="bg-slate-900/60 backdrop-blur rounded-lg p-3 border border-slate-800 shadow-inner">
+                                    <span className="text-xs text-slate-300 block mb-1 font-medium">Reps Kimono</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-xl font-bold text-white">{data.grappling.kimonoReps.current}</span>
+                                        <TrendBadge diff={data.grappling.kimonoReps.diff} />
+                                    </div>
                                 </div>
                             </div>
                         </section>
 
-                        <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-                            <div className="bg-slate-800/50 p-4 border-b border-slate-800">
+                        <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+                            <div className="bg-slate-800/50 p-4 border-b border-slate-800 flex flex-col gap-1">
                                 <h3 className="font-bold tracking-wide">Fuerza Máxima (RM Indirecto)</h3>
+                                <span className="text-xs text-slate-400">{data.strength.date}</span>
                             </div>
                             <div className="divide-y divide-slate-800">
                                 <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
                                     <span className="text-slate-300 font-medium">Back Squat</span>
-                                    <span className="font-bold text-lg">{data.strength.squat}</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-bold text-lg">{data.strength.squat.current}</span>
+                                        <TrendBadge diff={data.strength.squat.diff} />
+                                    </div>
                                 </div>
                                 <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
                                     <span className="text-slate-300 font-medium">Bench Press</span>
-                                    <span className="font-bold text-lg">{data.strength.bench}</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-bold text-lg">{data.strength.bench.current}</span>
+                                        <TrendBadge diff={data.strength.bench.diff} />
+                                    </div>
                                 </div>
                                 <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
                                     <span className="text-slate-300 font-medium">Deadlift</span>
-                                    <span className="font-bold text-lg">{data.strength.deadlift}</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-bold text-lg">{data.strength.deadlift.current}</span>
+                                        <TrendBadge diff={data.strength.deadlift.diff} />
+                                    </div>
                                 </div>
                             </div>
                         </section>

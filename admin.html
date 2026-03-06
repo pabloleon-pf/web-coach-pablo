@@ -169,6 +169,29 @@
                 setSaving(false);
             };
 
+            const handleDelete = async () => {
+                if (selectedEmail === 'NEW' || !selectedEmail) return;
+                if (window.confirm(`¿Estás seguro de que quieres eliminar al atleta ${formData.name}? Esta acción no se puede deshacer.`)) {
+                    setSaving(true);
+                    try {
+                        await db.collection("athletes").doc(selectedEmail).delete();
+                        setMsg("¡Atleta eliminado con éxito!");
+                        // clear selected email by simulating new
+                        setSelectedEmail(null);
+                        setFormData({ ...emptyAthlete });
+                    } catch (err) {
+                        let errMsg = "Error al eliminar: ";
+                        if (err.message.includes("permission-denied")) {
+                            errMsg += "Permiso denegado.";
+                        } else {
+                            errMsg += err.message;
+                        }
+                        setMsg(errMsg);
+                    }
+                    setSaving(false);
+                }
+            };
+
             // Helpers for deep updates
             const updateField = (path, value) => {
                 const keys = path.split('.');
@@ -409,6 +432,14 @@
                                                 {msg.includes('Error') ? '❌' : '✅'} {msg}
                                             </div>
                                         )}
+                                        <button
+                                            type="button"
+                                            onClick={handleDelete}
+                                            disabled={saving || selectedEmail === 'NEW'}
+                                            className="bg-red-600/20 hover:bg-red-600/40 text-red-500 font-bold py-3 px-6 rounded-xl disabled:opacity-50 transition-all shadow-lg text-sm border border-red-500/20"
+                                        >
+                                            Eliminar Atleta
+                                        </button>
                                         <button
                                             type="submit"
                                             disabled={saving}

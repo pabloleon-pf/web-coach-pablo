@@ -21,7 +21,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <!-- Babel standalone -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
@@ -47,18 +47,36 @@
 
         const { useState, useEffect } = React;
 
+        const InputField = ({ label, path, placeholder = "", formData, selectedEmail, updateField }) => {
+            // Determine value securely
+            const val = path.split('.').reduce((acc, part) => acc && acc[part] !== undefined ? acc[part] : '', formData);
+            return (
+                <div className="flex flex-col">
+                    <label className="text-xs text-slate-400 mb-1 font-semibold">{label}</label>
+                    <input
+                        type="text"
+                        value={val}
+                        onChange={(e) => updateField(path, e.target.value)}
+                        placeholder={placeholder}
+                        disabled={path === 'email' && selectedEmail !== 'NEW'}
+                        className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 disabled:opacity-50 transition-colors"
+                    />
+                </div>
+            );
+        };
+
         const AdminDashboard = ({ user, onLogout }) => {
             const [athletes, setAthletes] = useState([]);
             const [selectedEmail, setSelectedEmail] = useState(null);
-            
+
             // Initial empty structure to prevent errors
             const emptyAthlete = {
                 name: '',
                 status: 'Activo',
                 email: '',
                 summary: { bodyWeight: '', relativeStrength: '', nextGoal: '' },
-                power: { 
-                    date: '', 
+                power: {
+                    date: '',
                     cmj: { current: '', diff: '' },
                     abalakov: { current: '', diff: '' },
                     broadJump: { current: '', diff: '' },
@@ -101,16 +119,16 @@
                 mergedAthlete.power = { ...emptyAthlete.power, ...(athlete.power || {}) };
                 mergedAthlete.grappling = { ...emptyAthlete.grappling, ...(athlete.grappling || {}) };
                 mergedAthlete.strength = { ...emptyAthlete.strength, ...(athlete.strength || {}) };
-                
+
                 // Deep merge nested items (cmj, dropJump, etc) to avoid undefined errors in form
                 ['cmj', 'abalakov', 'broadJump', 'dropJump'].forEach(k => {
-                    if(mergedAthlete.power[k]) mergedAthlete.power[k] = { ...emptyAthlete.power[k], ...mergedAthlete.power[k] };
+                    if (mergedAthlete.power[k]) mergedAthlete.power[k] = { ...emptyAthlete.power[k], ...mergedAthlete.power[k] };
                 });
                 ['gripStrength', 'kimonoReps'].forEach(k => {
-                    if(mergedAthlete.grappling[k]) mergedAthlete.grappling[k] = { ...emptyAthlete.grappling[k], ...mergedAthlete.grappling[k] };
+                    if (mergedAthlete.grappling[k]) mergedAthlete.grappling[k] = { ...emptyAthlete.grappling[k], ...mergedAthlete.grappling[k] };
                 });
                 ['squat', 'bench', 'deadlift', 'pullups'].forEach(k => {
-                    if(mergedAthlete.strength[k]) mergedAthlete.strength[k] = { ...emptyAthlete.strength[k], ...mergedAthlete.strength[k] };
+                    if (mergedAthlete.strength[k]) mergedAthlete.strength[k] = { ...emptyAthlete.strength[k], ...mergedAthlete.strength[k] };
                 });
 
                 setSelectedEmail(athlete.id);
@@ -131,14 +149,14 @@
                 try {
                     const docId = formData.email.trim();
                     if (!docId) throw new Error("Debes especificar el correo electrónico.");
-                    
+
                     const dataToSave = { ...formData };
                     delete dataToSave.email; // Don't save email in body, auth is by ID
                     delete dataToSave.id;
 
                     await db.collection("athletes").doc(docId).set(dataToSave, { merge: true });
                     setMsg("¡Atleta guardado con éxito!");
-                    if(selectedEmail === 'NEW') setSelectedEmail(docId);
+                    if (selectedEmail === 'NEW') setSelectedEmail(docId);
                 } catch (err) {
                     let errMsg = "Error al guardar: ";
                     if (err.message.includes("permission-denied")) {
@@ -166,24 +184,6 @@
                 });
             };
 
-            const InputField = ({ label, path, placeholder = "" }) => {
-                // Determine value securely
-                const val = path.split('.').reduce((acc, part) => acc && acc[part] !== undefined ? acc[part] : '', formData);
-                return (
-                    <div className="flex flex-col">
-                        <label className="text-xs text-slate-400 mb-1 font-semibold">{label}</label>
-                        <input
-                            type="text"
-                            value={val}
-                            onChange={(e) => updateField(path, e.target.value)}
-                            placeholder={placeholder}
-                            disabled={path === 'email' && selectedEmail !== 'NEW'}
-                            className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 disabled:opacity-50 transition-colors"
-                        />
-                    </div>
-                );
-            };
-
             return (
                 <div className="min-h-screen flex text-white relative">
                     {/* Sidebar: List of athletes */}
@@ -191,18 +191,18 @@
                         <h2 className="text-2xl font-bold text-white mb-6 tracking-tight">
                             Coach<span className="text-orange-500">León</span> <span className="text-sm text-slate-400 font-normal">Admin</span>
                         </h2>
-                        <button 
+                        <button
                             onClick={handleNew}
                             className="w-full bg-orange-600 hover:bg-orange-500 border border-orange-500 text-white font-bold py-3 rounded-xl mb-6 shadow-lg shadow-orange-600/20 transition-all"
                         >
                             + Nuevo Atleta
                         </button>
-                        
+
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Tus Atletas ({athletes.length})</h3>
                         <div className="space-y-2">
                             {athletes.map(a => (
-                                <button 
-                                    key={a.id} 
+                                <button
+                                    key={a.id}
                                     onClick={() => handleSelect(a)}
                                     className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 ${selectedEmail === a.id ? 'bg-orange-500/10 border border-orange-500/50 text-orange-400' : 'hover:bg-slate-800 border border-transparent text-slate-300'}`}
                                 >
@@ -246,14 +246,14 @@
                                         <h3 className="text-xl font-bold">Información Básica</h3>
                                         <p className="text-xs text-slate-500 font-medium ml-2 uppercase tracking-widest">(Configuración Principal)</p>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                        <InputField label="Correo Electrónico (Login ID)" path="email" placeholder="ej. usuario@correo.com" />
-                                        <InputField label="Nombre Completo" path="name" />
+                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Correo Electrónico (Login ID)" path="email" placeholder="ej. usuario@correo.com" />
+                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Nombre Completo" path="name" />
                                         <div className="flex flex-col">
                                             <label className="text-xs text-slate-400 mb-1 font-semibold">Estado del Atleta</label>
-                                            <select 
-                                                value={formData.status} 
+                                            <select
+                                                value={formData.status}
                                                 onChange={(e) => updateField('status', e.target.value)}
                                                 className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 w-full"
                                             >
@@ -263,13 +263,13 @@
                                                 <option value="Inactivo">Inactivo</option>
                                             </select>
                                         </div>
-                                        <InputField label="URL Foto Perfil (Opcional)" path="profileImg" placeholder="https://..." />
+                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="URL Foto Perfil (Opcional)" path="profileImg" placeholder="https://..." />
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-slate-800/50">
-                                        <InputField label="Peso Corporal" path="summary.bodyWeight" placeholder="ej. 75 kg" />
-                                        <InputField label="Fuerza Relativa" path="summary.relativeStrength" placeholder="ej. 2.5x BW" />
-                                        <InputField label="Próximo Objetivo" path="summary.nextGoal" placeholder="ej. Torneo Suramericano" />
+                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Peso Corporal" path="summary.bodyWeight" placeholder="ej. 75 kg" />
+                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Fuerza Relativa" path="summary.relativeStrength" placeholder="ej. 2.5x BW" />
+                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Próximo Objetivo" path="summary.nextGoal" placeholder="ej. Torneo Suramericano" />
                                     </div>
                                 </section>
 
@@ -291,7 +291,7 @@
                                                 />
                                             </div>
                                         </div>
-                                        
+
                                         <div className="space-y-6">
                                             {[
                                                 { title: 'CMJ', pathKey: 'cmj', placeholders: ['45 cm', '+2 cm'] },
@@ -300,17 +300,17 @@
                                             ].map((item, idx) => (
                                                 <div key={idx} className="flex gap-4 p-4 bg-slate-950/50 rounded-xl border border-slate-800/50">
                                                     <div className="w-1/3 flex items-center font-semibold text-slate-300">{item.title}</div>
-                                                    <div className="w-1/3"><InputField label="Marca Actual" path={`power.${item.pathKey}.current`} placeholder={item.placeholders[0]} /></div>
-                                                    <div className="w-1/3"><InputField label="Progreso" path={`power.${item.pathKey}.diff`} placeholder={item.placeholders[1]} /></div>
+                                                    <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Marca Actual" path={`power.${item.pathKey}.current`} placeholder={item.placeholders[0]} /></div>
+                                                    <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Progreso" path={`power.${item.pathKey}.diff`} placeholder={item.placeholders[1]} /></div>
                                                 </div>
                                             ))}
-                                            
+
                                             <div className="flex flex-col gap-4 p-4 bg-orange-950/20 rounded-xl border border-orange-900/40">
                                                 <div className="font-semibold text-orange-400">Drop Jump (Reactividad)</div>
                                                 <div className="grid grid-cols-3 gap-4">
-                                                    <InputField label="Altura" path="power.dropJump.height" placeholder="42 cm" />
-                                                    <InputField label="RSI" path="power.dropJump.rsi" placeholder="2.1" />
-                                                    <InputField label="Progreso" path="power.dropJump.diff" placeholder="+0.2 RSI" />
+                                                    <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Altura" path="power.dropJump.height" placeholder="42 cm" />
+                                                    <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="RSI" path="power.dropJump.rsi" placeholder="2.1" />
+                                                    <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Progreso" path="power.dropJump.diff" placeholder="+0.2 RSI" />
                                                 </div>
                                             </div>
                                         </div>
@@ -333,7 +333,7 @@
                                                 />
                                             </div>
                                         </div>
-                                        
+
                                         <div className="space-y-6">
                                             {[
                                                 { title: 'Back Squat', pathKey: 'squat', placeholders: ['140 kg', '+5 kg'] },
@@ -342,17 +342,17 @@
                                             ].map((item, idx) => (
                                                 <div key={idx} className="flex gap-4 p-4 bg-slate-950/50 rounded-xl border border-slate-800/50">
                                                     <div className="w-1/3 flex items-center font-semibold text-slate-300">{item.title}</div>
-                                                    <div className="w-1/3"><InputField label="RM Actual" path={`strength.${item.pathKey}.current`} placeholder={item.placeholders[0]} /></div>
-                                                    <div className="w-1/3"><InputField label="Progreso" path={`strength.${item.pathKey}.diff`} placeholder={item.placeholders[1]} /></div>
+                                                    <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="RM Actual" path={`strength.${item.pathKey}.current`} placeholder={item.placeholders[0]} /></div>
+                                                    <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Progreso" path={`strength.${item.pathKey}.diff`} placeholder={item.placeholders[1]} /></div>
                                                 </div>
                                             ))}
-                                            
+
                                             <div className="flex flex-col gap-4 p-4 bg-slate-950/50 rounded-xl border border-slate-800/50">
                                                 <div className="font-semibold text-slate-300">Dominadas Lastradas</div>
                                                 <div className="grid grid-cols-3 gap-4">
-                                                    <InputField label="Peso Extra" path="strength.pullups.weight" placeholder="+20 kg" />
-                                                    <InputField label="Repeticiones" path="strength.pullups.reps" placeholder="5" />
-                                                    <InputField label="Progreso" path="strength.pullups.diff" placeholder="+1 rep" />
+                                                    <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Peso Extra" path="strength.pullups.weight" placeholder="+20 kg" />
+                                                    <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Repeticiones" path="strength.pullups.reps" placeholder="5" />
+                                                    <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Progreso" path="strength.pullups.diff" placeholder="+1 rep" />
                                                 </div>
                                             </div>
                                         </div>
@@ -361,7 +361,7 @@
 
                                 {/* Grappling */}
                                 <section className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden">
-                                     <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6 z-10 relative">
+                                    <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6 z-10 relative">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
                                             <h3 className="text-xl font-bold">Rendimiento Específico (Grappling)</h3>
@@ -376,17 +376,17 @@
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                                         <div className="flex gap-4 p-4 bg-slate-950/50 rounded-xl border border-slate-800/50">
+                                        <div className="flex gap-4 p-4 bg-slate-950/50 rounded-xl border border-slate-800/50">
                                             <div className="w-1/3 flex items-center font-semibold text-slate-300 text-sm">Agarre (Grip)</div>
-                                            <div className="w-1/3"><InputField label="Marca Actual" path="grappling.gripStrength.current" placeholder="65 kg" /></div>
-                                            <div className="w-1/3"><InputField label="Progreso" path="grappling.gripStrength.diff" placeholder="+2 kg" /></div>
+                                            <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Marca Actual" path="grappling.gripStrength.current" placeholder="65 kg" /></div>
+                                            <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Progreso" path="grappling.gripStrength.diff" placeholder="+2 kg" /></div>
                                         </div>
                                         <div className="flex gap-4 p-4 bg-slate-950/50 rounded-xl border border-slate-800/50">
                                             <div className="w-1/3 flex items-center font-semibold text-slate-300 text-sm">Reps Kimono (Pull)</div>
-                                            <div className="w-1/3"><InputField label="Repeticiones" path="grappling.kimonoReps.current" placeholder="18" /></div>
-                                            <div className="w-1/3"><InputField label="Progreso" path="grappling.kimonoReps.diff" placeholder="+3 reps" /></div>
+                                            <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Repeticiones" path="grappling.kimonoReps.current" placeholder="18" /></div>
+                                            <div className="w-1/3"><InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Progreso" path="grappling.kimonoReps.diff" placeholder="+3 reps" /></div>
                                         </div>
                                     </div>
                                 </section>
@@ -402,15 +402,15 @@
                                             <p className="text-xs text-slate-500">{formData.email || 'Complete el email'}</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-4">
                                         {msg && (
                                             <div className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 animate-bounce ${msg.includes('Error') ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
                                                 {msg.includes('Error') ? '❌' : '✅'} {msg}
                                             </div>
                                         )}
-                                        <button 
-                                            type="submit" 
+                                        <button
+                                            type="submit"
                                             disabled={saving}
                                             className="bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-10 rounded-xl disabled:opacity-50 transition-all shadow-lg shadow-orange-600/30 text-lg flex items-center gap-2"
                                         >
@@ -424,12 +424,12 @@
                                 </div>
                             </form>
                         )}
-                        
+
                         {!selectedEmail && (
                             <div className="flex flex-col items-center justify-center h-[60vh] text-slate-500 border-2 border-dashed border-slate-800 rounded-3xl">
                                 <h2 className="text-2xl font-bold mb-2">Bienvenido, Coach León</h2>
                                 <p>Selecciona un atleta del panel lateral izquierdo para ver y editar sus métricas.</p>
-                                <button 
+                                <button
                                     onClick={handleNew}
                                     className="mt-6 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors border border-slate-700"
                                 >
@@ -467,33 +467,33 @@
                             <h2 className="text-3xl font-bold text-white tracking-tight">Coach<span className="text-orange-500">León</span></h2>
                             <p className="text-orange-500/80 text-sm font-semibold uppercase tracking-widest mt-1">Panel de Administrador</p>
                         </div>
-                        
+
                         <div className="space-y-5">
                             <div>
                                 <label className="block text-xs uppercase text-slate-400 font-semibold mb-2">Correo Autenticado</label>
-                                <input 
-                                    type="email" 
+                                <input
+                                    type="email"
                                     value={email} onChange={e => setEmail(e.target.value)}
-                                    placeholder="tu@correo.com" 
-                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 focus:outline-none focus:border-orange-500 text-white transition-colors" 
-                                    required 
+                                    placeholder="tu@correo.com"
+                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 focus:outline-none focus:border-orange-500 text-white transition-colors"
+                                    required
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs uppercase text-slate-400 font-semibold mb-2">Contraseña</label>
-                                <input 
-                                    type="password" 
+                                <input
+                                    type="password"
                                     value={password} onChange={e => setPassword(e.target.value)}
-                                    placeholder="••••••••" 
-                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 focus:outline-none focus:border-orange-500 text-white transition-colors" 
-                                    required 
+                                    placeholder="••••••••"
+                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 px-4 focus:outline-none focus:border-orange-500 text-white transition-colors"
+                                    required
                                 />
                             </div>
-                            
+
                             {error && <p className="text-red-500 text-sm text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</p>}
-                            
-                            <button 
-                                type="submit" 
+
+                            <button
+                                type="submit"
                                 disabled={loading}
                                 className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-xl mt-4 shadow-lg shadow-orange-600/20 disabled:opacity-50 transition-colors"
                             >

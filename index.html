@@ -40,15 +40,38 @@
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="font-extrabold text-xl tracking-tighter">Coach<span class="accent-text">León</span></div>
-            <div class="hidden md:flex space-x-8 font-semibold text-slate-600">
+
+            <!-- Desktop Nav -->
+            <div class="hidden md:flex space-x-8 font-semibold text-slate-600 items-center">
                 <a href="#sobre-mi" class="hover:text-orange-500 transition">Sobre Mí</a>
                 <a href="#metodologia" class="hover:text-orange-500 transition">Método</a>
                 <a href="#servicios" class="hover:text-orange-500 transition">Servicios</a>
                 <a href="portal.html" class="hover:text-orange-500 transition">Portal Atleta</a>
+                <a href="https://wa.me/56945328686?text=Hola%20Coach%20Le%C3%B3n,%20busco%20potenciar%20mi%20FUERZA"
+                    target="_blank"
+                    class="bg-slate-900 text-white px-5 py-2 rounded-full font-bold hover:bg-orange-500 transition">Contactar</a>
             </div>
+
+            <!-- Mobile Nav Toggle -->
+            <button id="mobile-menu-btn" class="md:hidden text-slate-900 hover:text-orange-500 focus:outline-none"
+                aria-label="Abrir menú">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Nav Menu -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-4 font-semibold text-slate-600 shadow-b">
+            <a href="#sobre-mi" class="block hover:text-orange-500 transition">Sobre Mí</a>
+            <a href="#metodologia" class="block hover:text-orange-500 transition">Método</a>
+            <a href="#servicios" class="block hover:text-orange-500 transition">Servicios</a>
+            <a href="portal.html" class="block hover:text-orange-500 transition">Portal Atleta</a>
             <a href="https://wa.me/56945328686?text=Hola%20Coach%20Le%C3%B3n,%20busco%20potenciar%20mi%20FUERZA"
                 target="_blank"
-                class="bg-slate-900 text-white px-5 py-2 rounded-full font-bold hover:bg-orange-500 transition">Contactar</a>
+                class="block text-center bg-slate-900 text-white px-5 py-3 rounded-full font-bold hover:bg-orange-500 transition mt-4">Contactar</a>
         </div>
     </nav>
 
@@ -243,6 +266,22 @@
                 class="accent-text">León</span></div>
         <p>&copy; 2026 Coach León. Resultados basados en ciencia.</p>
     </footer>
+
+    <script>
+        // Menu toggle logic for mobile
+        document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+            var menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Hide menu when clicking a link (smooth interaction)
+        document.querySelectorAll('#mobile-menu a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                var menu = document.getElementById('mobile-menu');
+                menu.classList.add('hidden');
+            });
+        });
+    </script>
 
 </body>
 

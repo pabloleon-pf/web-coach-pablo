@@ -69,6 +69,9 @@
             const [athletes, setAthletes] = useState([]);
             const [selectedEmail, setSelectedEmail] = useState(null);
 
+            const [importing, setImporting] = useState(false);
+            const fileInputRef = React.useRef(null);
+
             // Initial empty structure to prevent errors
             const emptyEvaluation = {
                 date: '',
@@ -102,6 +105,101 @@
             const [formData, setFormData] = useState(emptyAthlete);
             const [saving, setSaving] = useState(false);
             const [msg, setMsg] = useState('');
+
+            const handleFileUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    setImporting(true);
+                    setMsg('Procesando archivo CSV...');
+                    try {
+                        const text = event.target.result;
+                        await processCSV(text);
+                    } catch (err) {
+                        setMsg(`Error al procesar CSV: ${err.message}`);
+                    }
+                    setImporting(false);
+                    if(fileInputRef.current) fileInputRef.current.value = ""; // Reset input
+                };
+                reader.readAsText(file);
+            };
+
+            const processCSV = async (csvText) => {
+                const lines = csvText.split(/\r?\n/).filter(l => l.trim() !== '');
+                if (lines.length < 2) throw new Error("El archivo está vacío o no tiene datos suficientes.");
+
+                const separator = lines[0].includes(';') ? ';' : ',';
+                const headers = lines[0].split(separator).map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                
+                const getCol = (row, potentialNames) => {
+                    for(let name of potentialNames) {
+                        const idx = headers.findIndex(h => h.includes(name));
+                        if(idx !== -1 && row[idx]) return row[idx].trim().replace(/"/g, '');
+                    }
+                    return '';
+                };
+
+                const batch = db.batch();
+                let count = 0;
+
+                for (let i = 1; i < lines.length; i++) {
+                    const row = lines[i].split(separator);
+                    if(row.length < 2) continue;
+
+                    const email = getCol(row, ['correo', 'email', 'mail']);
+                    if(!email) continue;
+                    
+                    const name = getCol(row, ['nombre', 'name', 'atleta']);
+                    const status = getCol(row, ['estado', 'status']) || 'Activo';
+                    const weight = getCol(row, ['peso', 'weight']);
+                    const date = getCol(row, ['fecha', 'date']) || new Date().toLocaleDateString('es-ES');
+                    
+                    const cmj = getCol(row, ['cmj']);
+                    const abalakov = getCol(row, ['abalakov', 'aba']);
+                    const squat = getCol(row, ['squat', 'sentadilla', 'back squat']);
+                    const bench = getCol(row, ['bench', 'pecho', 'press baja']);
+                    const deadlift = getCol(row, ['deadlift', 'peso muerto']);
+                    const pullups = getCol(row, ['dominadas']);
+                    
+                    const athleteRef = db.collection('athletes').doc(email.toLowerCase());
+                    
+                    // Fetch existing to append evaluation
+                    const docSnap = await athleteRef.get();
+                    let athleteData = docSnap.exists ? docSnap.data() : { ...emptyAthlete, email: email.toLowerCase(), name, status };
+                    
+                    if(name && !docSnap.exists) athleteData.name = name;
+                    if(weight) {
+                        if(!athleteData.summary) athleteData.summary = { ...emptyAthlete.summary };
+                        athleteData.summary.bodyWeight = weight;
+                    }
+
+                    const newEval = JSON.parse(JSON.stringify(emptyEvaluation));
+                    newEval.date = date;
+                    if(cmj) newEval.power.cmj.current = cmj;
+                    if(abalakov) newEval.power.abalakov.current = abalakov;
+                    if(squat) newEval.strength.squat.current = squat;
+                    if(bench) newEval.strength.bench.current = bench;
+                    if(deadlift) newEval.strength.deadlift.current = deadlift;
+                    if(pullups) {
+                        newEval.strength.pullups.reps = pullups;
+                    }
+
+                    if(!athleteData.evaluations) athleteData.evaluations = [];
+                    athleteData.evaluations.push(newEval);
+
+                    batch.set(athleteRef, athleteData, { merge: true });
+                    count++;
+                }
+
+                if(count > 0) {
+                    await batch.commit();
+                    setMsg(`¡Importación exitosa! Se procesaron ${count} atletas.`);
+                } else {
+                    setMsg("No se encontraron atletas válidos. (Revisa que la columna 'email' o 'correo' exista).");
+                }
+            };
 
             // Helper to add a new evaluation
             const handleAddEvaluation = () => {
@@ -239,12 +337,31 @@
                         <h2 className="text-2xl font-bold text-white mb-6 tracking-tight">
                             Coach<span className="text-orange-500">León</span> <span className="text-sm text-slate-400 font-normal">Admin</span>
                         </h2>
-                        <button
-                            onClick={handleNew}
-                            className="w-full bg-orange-600 hover:bg-orange-500 border border-orange-500 text-white font-bold py-3 rounded-xl mb-6 shadow-lg shadow-orange-600/20 transition-all"
-                        >
-                            + Nuevo Atleta
-                        </button>
+                        <div className="flex gap-2 mb-6">
+                            <button
+                                onClick={handleNew}
+                                className="flex-1 bg-orange-600 hover:bg-orange-500 border border-orange-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-600/20 transition-all text-sm"
+                            >
+                                + Nuevo
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={importing}
+                                className="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                            >
+                                {importing ? (
+                                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                ) : '📥 Importar'}
+                            </button>
+                            <input 
+                                type="file" 
+                                accept=".csv" 
+                                ref={fileInputRef} 
+                                onChange={handleFileUpload} 
+                                className="hidden" 
+                            />
+                        </div>
 
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Tus Atletas ({athletes.length})</h3>
                         <div className="space-y-2">

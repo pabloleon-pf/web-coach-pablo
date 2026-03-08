@@ -143,6 +143,7 @@
 
                 const batch = db.batch();
                 let count = 0;
+                const athletesCache = {}; // Cache to prevent overwriting when multiple rows exist for the same athlete
 
                 for (let i = 1; i < lines.length; i++) {
                     const row = lines[i].split(separator);
@@ -150,6 +151,7 @@
 
                     const email = getCol(row, ['correo', 'email', 'mail']);
                     if (!email) continue;
+                    const emailKey = email.toLowerCase();
 
                     const name = getCol(row, ['nombre', 'name', 'atleta']);
                     const status = getCol(row, ['estado', 'status']) || 'Activo';
@@ -169,13 +171,19 @@
                     const grip = getCol(row, ['handgrip derecha', 'handgrip']);
                     const kimono = getCol(row, ['rept con gi', 'kimono']);
 
-                    const athleteRef = db.collection('athletes').doc(email.toLowerCase());
+                    const athleteRef = db.collection('athletes').doc(emailKey);
 
-                    // Fetch existing to append evaluation
-                    const docSnap = await athleteRef.get();
-                    let athleteData = docSnap.exists ? docSnap.data() : { ...emptyAthlete, email: email.toLowerCase(), name, status };
+                    // Fetch existing to append evaluation (use cache if available)
+                    let athleteData;
+                    if (athletesCache[emailKey]) {
+                        athleteData = athletesCache[emailKey];
+                    } else {
+                        const docSnap = await athleteRef.get();
+                        athleteData = docSnap.exists ? docSnap.data() : { ...emptyAthlete, email: emailKey, name, status };
+                        athletesCache[emailKey] = athleteData;
+                    }
 
-                    if (name && !docSnap.exists) athleteData.name = name;
+                    if (name && !athleteData.name) athleteData.name = name;
 
                     const isValidVal = (val) => val && val.trim() !== '' && val.trim() !== '0' && val.trim() !== '0.0';
 
@@ -207,8 +215,28 @@
                         athleteData.evaluations.push(newEval);
                     }
 
-                    batch.set(athleteRef, athleteData, { merge: true });
                     count++;
+                }
+
+                // Helper to parse dates like DD/MM/YYYY into a comparable number
+                const parseDate = (dateStr) => {
+                    if (!dateStr) return 0;
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) {
+                        return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+                    }
+                    const parsed = Date.parse(dateStr);
+                    return isNaN(parsed) ? 0 : parsed;
+                };
+
+                // Add to batch and sort history chronologically
+                for (const emailKey in athletesCache) {
+                    const athleteData = athletesCache[emailKey];
+                    if (athleteData.evaluations && athleteData.evaluations.length > 0) {
+                        athleteData.evaluations.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+                    }
+                    const athleteRef = db.collection('athletes').doc(emailKey);
+                    batch.set(athleteRef, athleteData, { merge: true });
                 }
 
                 if (count > 0) {

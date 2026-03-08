@@ -221,22 +221,27 @@
                             // Merge new data into the existing evaluation for this date to avoid duplicates
                             const existing = athleteData.evaluations[existingEvalIndex];
 
-                            if (isValidVal(cmj)) existing.power.cmj.current = cmj;
-                            if (isValidVal(abalakov)) existing.power.abalakov.current = abalakov;
-                            if (isValidVal(broadJump)) existing.power.broadJump.current = broadJump;
-                            if (isValidVal(rsi)) existing.power.dropJump.rsi = rsi;
+                            // Helper to safely set nested properties to avoid "Cannot set properties of undefined"
+                            const safeSet = (obj, category, metric, field, val) => {
+                                if (!obj[category]) obj[category] = {};
+                                if (!obj[category][metric]) obj[category][metric] = {};
+                                obj[category][metric][field] = val;
+                            };
 
-                            if (isValidVal(squat)) existing.strength.squat.current = squat;
-                            if (isValidVal(bench)) existing.strength.bench.current = bench;
-                            if (isValidVal(deadlift)) existing.strength.deadlift.current = deadlift;
-                            if (isValidVal(pullups)) existing.strength.pullups.weight = pullups;
+                            if (isValidVal(cmj)) safeSet(existing, 'power', 'cmj', 'current', cmj);
+                            if (isValidVal(abalakov)) safeSet(existing, 'power', 'abalakov', 'current', abalakov);
+                            if (isValidVal(broadJump)) safeSet(existing, 'power', 'broadJump', 'current', broadJump);
+                            if (isValidVal(rsi)) safeSet(existing, 'power', 'dropJump', 'rsi', rsi);
 
-                            if (isValidVal(grip)) existing.grappling.gripStrength.current = grip;
-                            if (isValidVal(kimono)) existing.grappling.kimonoReps.current = kimono;
-                            if (isValidVal(kimonoTime)) {
-                                if (!existing.grappling.kimonoTime) existing.grappling.kimonoTime = {};
-                                existing.grappling.kimonoTime.current = kimonoTime;
-                            }
+                            if (isValidVal(squat)) safeSet(existing, 'strength', 'squat', 'current', squat);
+                            if (isValidVal(bench)) safeSet(existing, 'strength', 'bench', 'current', bench);
+                            if (isValidVal(deadlift)) safeSet(existing, 'strength', 'deadlift', 'current', deadlift);
+                            if (isValidVal(pullups)) safeSet(existing, 'strength', 'pullups', 'weight', pullups);
+
+                            if (isValidVal(grip)) safeSet(existing, 'grappling', 'gripStrength', 'current', grip);
+                            if (isValidVal(kimono)) safeSet(existing, 'grappling', 'kimonoReps', 'current', kimono);
+                            if (isValidVal(kimonoTime)) safeSet(existing, 'grappling', 'kimonoTime', 'current', kimonoTime);
+
                         } else {
                             athleteData.evaluations.push(newEval);
                         }

@@ -184,7 +184,7 @@
                         athleteData = athletesCache[emailKey];
                     } else {
                         const docSnap = await athleteRef.get();
-                        athleteData = docSnap.exists ? docSnap.data() : { ...emptyAthlete, email: emailKey, name, status };
+                        athleteData = docSnap.exists ? docSnap.data() : { ...JSON.parse(JSON.stringify(emptyAthlete)), email: emailKey, name, status };
                         athletesCache[emailKey] = athleteData;
                     }
 

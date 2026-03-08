@@ -156,7 +156,7 @@
                     const name = getCol(row, ['nombre', 'name', 'atleta']);
                     const status = getCol(row, ['estado', 'status']) || 'Activo';
                     const weight = getCol(row, ['peso', 'weight']);
-                    const date = getCol(row, ['fecha', 'date']) || new Date().toLocaleDateString('es-ES');
+                    const date = getCol(row, ['fecha', 'date']); // Remove default to today to prevent accidental current-day entries
 
                     const cmj = getCol(row, ['cmj']);
                     const abalakov = getCol(row, ['abalakov', 'aba']);
@@ -197,6 +197,7 @@
                     newEval.date = date;
 
                     let hasNewData = false;
+                    if (date) {
 
                     if (isValidVal(cmj)) { newEval.power.cmj.current = cmj; hasNewData = true; }
                     if (isValidVal(abalakov)) { newEval.power.abalakov.current = abalakov; hasNewData = true; }
@@ -245,6 +246,7 @@
                         } else {
                             athleteData.evaluations.push(newEval);
                         }
+                    }
                     }
 
                     count++;
@@ -529,102 +531,6 @@
                                         <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Próximo Objetivo" path="summary.nextGoal" placeholder="ej. Torneo Suramericano" />
                                     </div>
                                 </section>
-
-                                <div className="grid grid-cols-1 gap-8 mt-8 border-t border-slate-800 pt-8">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="text-2xl font-bold">Historial de Evaluaciones</h3>
-                                            <p className="text-sm text-slate-400">Anota una nueva medición para que la app calcule automáticamente el nivel de progreso de este alumno (ej. +5cm).</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button type="button" onClick={handleAddEvaluation} className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg border border-slate-700 transition-colors text-sm">
-                                                En Blanco
-                                            </button>
-                                            <button type="button" onClick={handleDuplicateLastEvaluation} className="bg-blue-600/20 hover:bg-blue-600/40 text-blue-500 font-bold py-2 px-4 rounded-lg border border-blue-500/20 transition-colors text-sm flex items-center gap-2">
-                                                <span>+</span> Usar Última Como Base
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {!formData.evaluations || formData.evaluations.length === 0 ? (
-                                        <div className="flex items-center justify-center p-10 border-2 border-dashed border-slate-800 rounded-2xl">
-                                            <p className="text-slate-500 font-semibold">El atleta aún no tiene evaluaciones. Haz clic arriba para añadir la primera.</p>
-                                        </div>
-                                    ) : (
-                                        formData.evaluations.map((evaluation, evalIndex) => (
-                                            <div key={evalIndex} className="bg-slate-900/50 p-6 rounded-2xl border border-slate-700 shadow-xl relative mt-4">
-
-                                                <div className="absolute top-4 right-4 flex gap-2">
-                                                    <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest bg-orange-500/10 border border-orange-500/20 px-2 py-1 rounded">Evaluación #{evalIndex + 1}</span>
-                                                    <button type="button" onClick={() => {
-                                                        const confirmDelete = window.confirm(`¿Seguro que quieres borrar la evaluación #${evalIndex + 1}?`);
-                                                        if (confirmDelete) {
-                                                            setFormData(prev => ({
-                                                                ...prev,
-                                                                evaluations: prev.evaluations.filter((_, i) => i !== evalIndex)
-                                                            }));
-                                                        }
-                                                    }} className="text-red-500 hover:text-red-400 bg-red-500/10 px-2 py-1 rounded text-xs">Eliminar</button>
-                                                </div>
-
-                                                <div className="mb-6 max-w-xs">
-                                                    <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Fecha de esta evaluación" path={`evaluations.${evalIndex}.date`} placeholder="ej. 10 de Marzo, 2026" />
-                                                </div>
-
-                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                                    {/* Potencia */}
-                                                    <section className="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
-                                                        <div className="flex items-center gap-2 mb-4">
-                                                            <div className="w-1.5 h-4 bg-yellow-500 rounded-full"></div>
-                                                            <h4 className="text-sm font-bold text-slate-300">Potencia</h4>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="CMJ" path={`evaluations.${evalIndex}.power.cmj.current`} placeholder="45 cm" />
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Abalakov" path={`evaluations.${evalIndex}.power.abalakov.current`} placeholder="52 cm" />
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Salto Horizontal" path={`evaluations.${evalIndex}.power.broadJump.current`} placeholder="2.8 m" />
-                                                        </div>
-                                                        <div className="mt-4 p-3 bg-orange-950/20 border border-orange-900/40 rounded-lg grid grid-cols-2 gap-4">
-                                                            <div className="col-span-2 font-semibold text-xs text-orange-400 mb-1">Drop Jump (Reactividad)</div>
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Altura" path={`evaluations.${evalIndex}.power.dropJump.height`} placeholder="42 cm" />
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="RSI" path={`evaluations.${evalIndex}.power.dropJump.rsi`} placeholder="2.1" />
-                                                        </div>
-                                                    </section>
-
-                                                    {/* Fuerza */}
-                                                    <section className="bg-slate-950 p-4 rounded-xl border border-slate-800/80">
-                                                        <div className="flex items-center gap-2 mb-4">
-                                                            <div className="w-1.5 h-4 bg-red-500 rounded-full"></div>
-                                                            <h4 className="text-sm font-bold text-slate-300">Fuerza Máxima</h4>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Back Squat" path={`evaluations.${evalIndex}.strength.squat.current`} placeholder="140 kg" />
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Bench Press" path={`evaluations.${evalIndex}.strength.bench.current`} placeholder="100 kg" />
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Deadlift" path={`evaluations.${evalIndex}.strength.deadlift.current`} placeholder="180 kg" />
-                                                        </div>
-                                                        <div className="mt-4 p-3 bg-slate-900/80 border border-slate-800 rounded-lg grid grid-cols-2 gap-4">
-                                                            <div className="col-span-2 font-semibold text-xs text-slate-400 mb-1">Dominadas Lastradas</div>
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Peso Extra" path={`evaluations.${evalIndex}.strength.pullups.weight`} placeholder="+20 kg" />
-                                                            <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Repeticiones" path={`evaluations.${evalIndex}.strength.pullups.reps`} placeholder="5" />
-                                                        </div>
-                                                    </section>
-                                                </div>
-
-                                                {/* Grappling */}
-                                                <section className="bg-slate-950 p-4 rounded-xl border border-slate-800/80 mt-6">
-                                                    <div className="flex items-center gap-2 mb-4">
-                                                        <div className="w-1.5 h-4 bg-blue-500 rounded-full"></div>
-                                                        <h4 className="text-sm font-bold text-slate-300">Grappling</h4>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Agarre (Grip)" path={`evaluations.${evalIndex}.grappling.gripStrength.current`} placeholder="65 kg" />
-                                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Reps Kimono (Pull)" path={`evaluations.${evalIndex}.grappling.kimonoReps.current`} placeholder="18" />
-                                                    </div>
-                                                </section>
-
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
 
                                 {/* FIXED ACTION BAR at the bottom */}
                                 <div className="sticky bottom-4 z-50 bg-slate-900/90 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-2xl flex items-center justify-between mt-10">

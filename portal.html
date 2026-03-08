@@ -233,6 +233,17 @@
             // Ensure chronological order
             evals.sort((a, b) => parseDate(a.date) - parseDate(b.date));
 
+            // Deduplicate to avoid multiple entries on the same day breaking the trend badge
+            const uniqueEvalsMap = new Map();
+            evals.forEach(e => {
+                uniqueEvalsMap.set(e.date, e);
+            });
+            const uniqueEvals = Array.from(uniqueEvalsMap.values());
+
+            // Replace evals with uniqueEvals
+            evals.length = 0;
+            evals.push(...uniqueEvals);
+
             const latestEval = evals.length > 0 ? evals[evals.length - 1] : null;
             const prevEval = evals.length > 1 ? evals[evals.length - 2] : null;
 

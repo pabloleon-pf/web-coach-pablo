@@ -472,7 +472,7 @@
                 <React.Fragment>
                     {!user ? (
                         <LoginView />
-                    ) : athleteData ? (
+                    ) : (athleteData && athleteData.status === 'Activo') ? (
                         <DashboardView
                             data={athleteData}
                             onLogout={() => auth.signOut()}

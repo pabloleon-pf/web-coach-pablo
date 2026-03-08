@@ -170,6 +170,7 @@
 
                     const grip = getCol(row, ['handgrip derecha', 'handgrip']);
                     const kimono = getCol(row, ['rept con gi', 'kimono']);
+                    const kimonoTime = getCol(row, ['tiempo con gi', 'tiempo']);
 
                     const athleteRef = db.collection('athletes').doc(emailKey);
 
@@ -209,10 +210,36 @@
 
                     if (isValidVal(grip)) { newEval.grappling.gripStrength.current = grip; hasNewData = true; }
                     if (isValidVal(kimono)) { newEval.grappling.kimonoReps.current = kimono; hasNewData = true; }
+                    if (isValidVal(kimonoTime)) { newEval.grappling.kimonoTime = { current: kimonoTime }; hasNewData = true; }
 
                     if (hasNewData) {
                         if (!athleteData.evaluations) athleteData.evaluations = [];
-                        athleteData.evaluations.push(newEval);
+
+                        // Prevent duplicates by checking if an evaluation for this EXACT date already exists in the cache
+                        const existingEvalIndex = athleteData.evaluations.findIndex(e => e.date === date);
+                        if (existingEvalIndex >= 0) {
+                            // Merge new data into the existing evaluation for this date to avoid duplicates
+                            const existing = athleteData.evaluations[existingEvalIndex];
+
+                            if (isValidVal(cmj)) existing.power.cmj.current = cmj;
+                            if (isValidVal(abalakov)) existing.power.abalakov.current = abalakov;
+                            if (isValidVal(broadJump)) existing.power.broadJump.current = broadJump;
+                            if (isValidVal(rsi)) existing.power.dropJump.rsi = rsi;
+
+                            if (isValidVal(squat)) existing.strength.squat.current = squat;
+                            if (isValidVal(bench)) existing.strength.bench.current = bench;
+                            if (isValidVal(deadlift)) existing.strength.deadlift.current = deadlift;
+                            if (isValidVal(pullups)) existing.strength.pullups.weight = pullups;
+
+                            if (isValidVal(grip)) existing.grappling.gripStrength.current = grip;
+                            if (isValidVal(kimono)) existing.grappling.kimonoReps.current = kimono;
+                            if (isValidVal(kimonoTime)) {
+                                if (!existing.grappling.kimonoTime) existing.grappling.kimonoTime = {};
+                                existing.grappling.kimonoTime.current = kimonoTime;
+                            }
+                        } else {
+                            athleteData.evaluations.push(newEval);
+                        }
                     }
 
                     count++;

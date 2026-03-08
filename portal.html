@@ -217,7 +217,22 @@
         const DashboardView = ({ onLogout, data }) => {
 
             // Extract latest and previous evaluations for dynamic comparison
-            const evals = data.evaluations || [];
+            const evals = data.evaluations ? [...data.evaluations] : [];
+
+            // Helper to parse dates like DD/MM/YYYY into a comparable number
+            const parseDate = (dateStr) => {
+                if (!dateStr) return 0;
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+                }
+                const parsed = Date.parse(dateStr);
+                return isNaN(parsed) ? 0 : parsed;
+            };
+
+            // Ensure chronological order
+            evals.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
             const latestEval = evals.length > 0 ? evals[evals.length - 1] : null;
             const prevEval = evals.length > 1 ? evals[evals.length - 2] : null;
 

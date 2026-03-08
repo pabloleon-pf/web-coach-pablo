@@ -337,6 +337,19 @@
                     if (!docId) throw new Error("Debes especificar el correo electrónico.");
 
                     const dataToSave = { ...formData };
+
+                    // Always sort evaluations before manual save
+                    if (dataToSave.evaluations && dataToSave.evaluations.length > 0) {
+                        const parseDate = (dateStr) => {
+                            if (!dateStr) return 0;
+                            const parts = dateStr.split('/');
+                            if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]).getTime();
+                            const parsed = Date.parse(dateStr);
+                            return isNaN(parsed) ? 0 : parsed;
+                        };
+                        dataToSave.evaluations.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+                    }
+
                     delete dataToSave.email; // Don't save email in body, auth is by ID
                     delete dataToSave.id;
 

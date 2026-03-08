@@ -153,7 +153,11 @@
                     if (!email) continue;
                     const emailKey = email.toLowerCase();
 
-                    const name = getCol(row, ['nombre', 'name', 'atleta']);
+                    let name = getCol(row, ['nombre', 'name', 'atleta']);
+                    if (!name && headers[0] === '') {
+                        name = row[0].trim().replace(/"/g, ''); // Fix for CSVs missing the 'Nombre' header
+                    }
+
                     const status = getCol(row, ['estado', 'status']) || 'Activo';
                     const weight = getCol(row, ['peso', 'weight']);
                     const date = getCol(row, ['fecha', 'date']); // Remove default to today to prevent accidental current-day entries
@@ -199,54 +203,54 @@
                     let hasNewData = false;
                     if (date) {
 
-                    if (isValidVal(cmj)) { newEval.power.cmj.current = cmj; hasNewData = true; }
-                    if (isValidVal(abalakov)) { newEval.power.abalakov.current = abalakov; hasNewData = true; }
-                    if (isValidVal(broadJump)) { newEval.power.broadJump.current = broadJump; hasNewData = true; }
-                    if (isValidVal(rsi)) { newEval.power.dropJump.rsi = rsi; hasNewData = true; }
+                        if (isValidVal(cmj)) { newEval.power.cmj.current = cmj; hasNewData = true; }
+                        if (isValidVal(abalakov)) { newEval.power.abalakov.current = abalakov; hasNewData = true; }
+                        if (isValidVal(broadJump)) { newEval.power.broadJump.current = broadJump; hasNewData = true; }
+                        if (isValidVal(rsi)) { newEval.power.dropJump.rsi = rsi; hasNewData = true; }
 
-                    if (isValidVal(squat)) { newEval.strength.squat.current = squat; hasNewData = true; }
-                    if (isValidVal(bench)) { newEval.strength.bench.current = bench; hasNewData = true; }
-                    if (isValidVal(deadlift)) { newEval.strength.deadlift.current = deadlift; hasNewData = true; }
-                    if (isValidVal(pullups)) { newEval.strength.pullups.weight = pullups; hasNewData = true; }
+                        if (isValidVal(squat)) { newEval.strength.squat.current = squat; hasNewData = true; }
+                        if (isValidVal(bench)) { newEval.strength.bench.current = bench; hasNewData = true; }
+                        if (isValidVal(deadlift)) { newEval.strength.deadlift.current = deadlift; hasNewData = true; }
+                        if (isValidVal(pullups)) { newEval.strength.pullups.weight = pullups; hasNewData = true; }
 
-                    if (isValidVal(grip)) { newEval.grappling.gripStrength.current = grip; hasNewData = true; }
-                    if (isValidVal(kimono)) { newEval.grappling.kimonoReps.current = kimono; hasNewData = true; }
-                    if (isValidVal(kimonoTime)) { newEval.grappling.kimonoTime = { current: kimonoTime }; hasNewData = true; }
+                        if (isValidVal(grip)) { newEval.grappling.gripStrength.current = grip; hasNewData = true; }
+                        if (isValidVal(kimono)) { newEval.grappling.kimonoReps.current = kimono; hasNewData = true; }
+                        if (isValidVal(kimonoTime)) { newEval.grappling.kimonoTime = { current: kimonoTime }; hasNewData = true; }
 
-                    if (hasNewData) {
-                        if (!athleteData.evaluations) athleteData.evaluations = [];
+                        if (hasNewData) {
+                            if (!athleteData.evaluations) athleteData.evaluations = [];
 
-                        // Prevent duplicates by checking if an evaluation for this EXACT date already exists in the cache
-                        const existingEvalIndex = athleteData.evaluations.findIndex(e => e.date === date);
-                        if (existingEvalIndex >= 0) {
-                            // Merge new data into the existing evaluation for this date to avoid duplicates
-                            const existing = athleteData.evaluations[existingEvalIndex];
+                            // Prevent duplicates by checking if an evaluation for this EXACT date already exists in the cache
+                            const existingEvalIndex = athleteData.evaluations.findIndex(e => e.date === date);
+                            if (existingEvalIndex >= 0) {
+                                // Merge new data into the existing evaluation for this date to avoid duplicates
+                                const existing = athleteData.evaluations[existingEvalIndex];
 
-                            // Helper to safely set nested properties to avoid "Cannot set properties of undefined"
-                            const safeSet = (obj, category, metric, field, val) => {
-                                if (!obj[category]) obj[category] = {};
-                                if (!obj[category][metric]) obj[category][metric] = {};
-                                obj[category][metric][field] = val;
-                            };
+                                // Helper to safely set nested properties to avoid "Cannot set properties of undefined"
+                                const safeSet = (obj, category, metric, field, val) => {
+                                    if (!obj[category]) obj[category] = {};
+                                    if (!obj[category][metric]) obj[category][metric] = {};
+                                    obj[category][metric][field] = val;
+                                };
 
-                            if (isValidVal(cmj)) safeSet(existing, 'power', 'cmj', 'current', cmj);
-                            if (isValidVal(abalakov)) safeSet(existing, 'power', 'abalakov', 'current', abalakov);
-                            if (isValidVal(broadJump)) safeSet(existing, 'power', 'broadJump', 'current', broadJump);
-                            if (isValidVal(rsi)) safeSet(existing, 'power', 'dropJump', 'rsi', rsi);
+                                if (isValidVal(cmj)) safeSet(existing, 'power', 'cmj', 'current', cmj);
+                                if (isValidVal(abalakov)) safeSet(existing, 'power', 'abalakov', 'current', abalakov);
+                                if (isValidVal(broadJump)) safeSet(existing, 'power', 'broadJump', 'current', broadJump);
+                                if (isValidVal(rsi)) safeSet(existing, 'power', 'dropJump', 'rsi', rsi);
 
-                            if (isValidVal(squat)) safeSet(existing, 'strength', 'squat', 'current', squat);
-                            if (isValidVal(bench)) safeSet(existing, 'strength', 'bench', 'current', bench);
-                            if (isValidVal(deadlift)) safeSet(existing, 'strength', 'deadlift', 'current', deadlift);
-                            if (isValidVal(pullups)) safeSet(existing, 'strength', 'pullups', 'weight', pullups);
+                                if (isValidVal(squat)) safeSet(existing, 'strength', 'squat', 'current', squat);
+                                if (isValidVal(bench)) safeSet(existing, 'strength', 'bench', 'current', bench);
+                                if (isValidVal(deadlift)) safeSet(existing, 'strength', 'deadlift', 'current', deadlift);
+                                if (isValidVal(pullups)) safeSet(existing, 'strength', 'pullups', 'weight', pullups);
 
-                            if (isValidVal(grip)) safeSet(existing, 'grappling', 'gripStrength', 'current', grip);
-                            if (isValidVal(kimono)) safeSet(existing, 'grappling', 'kimonoReps', 'current', kimono);
-                            if (isValidVal(kimonoTime)) safeSet(existing, 'grappling', 'kimonoTime', 'current', kimonoTime);
+                                if (isValidVal(grip)) safeSet(existing, 'grappling', 'gripStrength', 'current', grip);
+                                if (isValidVal(kimono)) safeSet(existing, 'grappling', 'kimonoReps', 'current', kimono);
+                                if (isValidVal(kimonoTime)) safeSet(existing, 'grappling', 'kimonoTime', 'current', kimonoTime);
 
-                        } else {
-                            athleteData.evaluations.push(newEval);
+                            } else {
+                                athleteData.evaluations.push(newEval);
+                            }
                         }
-                    }
                     }
 
                     count++;

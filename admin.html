@@ -121,7 +121,7 @@
                         setMsg(`Error al procesar CSV: ${err.message}`);
                     }
                     setImporting(false);
-                    if(fileInputRef.current) fileInputRef.current.value = ""; // Reset input
+                    if (fileInputRef.current) fileInputRef.current.value = ""; // Reset input
                 };
                 reader.readAsText(file);
             };
@@ -132,11 +132,11 @@
 
                 const separator = lines[0].includes(';') ? ';' : ',';
                 const headers = lines[0].split(separator).map(h => h.trim().toLowerCase().replace(/"/g, ''));
-                
+
                 const getCol = (row, potentialNames) => {
-                    for(let name of potentialNames) {
+                    for (let name of potentialNames) {
                         const idx = headers.findIndex(h => h.includes(name));
-                        if(idx !== -1 && row[idx]) return row[idx].trim().replace(/"/g, '');
+                        if (idx !== -1 && row[idx]) return row[idx].trim().replace(/"/g, '');
                     }
                     return '';
                 };
@@ -146,54 +146,72 @@
 
                 for (let i = 1; i < lines.length; i++) {
                     const row = lines[i].split(separator);
-                    if(row.length < 2) continue;
+                    if (row.length < 2) continue;
 
                     const email = getCol(row, ['correo', 'email', 'mail']);
-                    if(!email) continue;
-                    
+                    if (!email) continue;
+
                     const name = getCol(row, ['nombre', 'name', 'atleta']);
                     const status = getCol(row, ['estado', 'status']) || 'Activo';
                     const weight = getCol(row, ['peso', 'weight']);
                     const date = getCol(row, ['fecha', 'date']) || new Date().toLocaleDateString('es-ES');
-                    
+
                     const cmj = getCol(row, ['cmj']);
                     const abalakov = getCol(row, ['abalakov', 'aba']);
+                    const broadJump = getCol(row, ['salto horizontal']);
+                    const rsi = getCol(row, ['rsi']);
+
                     const squat = getCol(row, ['squat', 'sentadilla', 'back squat']);
-                    const bench = getCol(row, ['bench', 'pecho', 'press baja']);
+                    const bench = getCol(row, ['bench', 'pecho', 'bench press']);
                     const deadlift = getCol(row, ['deadlift', 'peso muerto']);
-                    const pullups = getCol(row, ['dominadas']);
-                    
+                    const pullups = getCol(row, ['dominadas', 'pull-up (lastre kg)', 'pullup']);
+
+                    const grip = getCol(row, ['handgrip derecha', 'handgrip']);
+                    const kimono = getCol(row, ['rept con gi', 'kimono']);
+
                     const athleteRef = db.collection('athletes').doc(email.toLowerCase());
-                    
+
                     // Fetch existing to append evaluation
                     const docSnap = await athleteRef.get();
                     let athleteData = docSnap.exists ? docSnap.data() : { ...emptyAthlete, email: email.toLowerCase(), name, status };
-                    
-                    if(name && !docSnap.exists) athleteData.name = name;
-                    if(weight) {
-                        if(!athleteData.summary) athleteData.summary = { ...emptyAthlete.summary };
+
+                    if (name && !docSnap.exists) athleteData.name = name;
+
+                    const isValidVal = (val) => val && val.trim() !== '' && val.trim() !== '0' && val.trim() !== '0.0';
+
+                    if (isValidVal(weight)) {
+                        if (!athleteData.summary) athleteData.summary = { ...emptyAthlete.summary };
                         athleteData.summary.bodyWeight = weight;
                     }
 
                     const newEval = JSON.parse(JSON.stringify(emptyEvaluation));
                     newEval.date = date;
-                    if(cmj) newEval.power.cmj.current = cmj;
-                    if(abalakov) newEval.power.abalakov.current = abalakov;
-                    if(squat) newEval.strength.squat.current = squat;
-                    if(bench) newEval.strength.bench.current = bench;
-                    if(deadlift) newEval.strength.deadlift.current = deadlift;
-                    if(pullups) {
-                        newEval.strength.pullups.reps = pullups;
-                    }
 
-                    if(!athleteData.evaluations) athleteData.evaluations = [];
-                    athleteData.evaluations.push(newEval);
+                    let hasNewData = false;
+
+                    if (isValidVal(cmj)) { newEval.power.cmj.current = cmj; hasNewData = true; }
+                    if (isValidVal(abalakov)) { newEval.power.abalakov.current = abalakov; hasNewData = true; }
+                    if (isValidVal(broadJump)) { newEval.power.broadJump.current = broadJump; hasNewData = true; }
+                    if (isValidVal(rsi)) { newEval.power.dropJump.rsi = rsi; hasNewData = true; }
+
+                    if (isValidVal(squat)) { newEval.strength.squat.current = squat; hasNewData = true; }
+                    if (isValidVal(bench)) { newEval.strength.bench.current = bench; hasNewData = true; }
+                    if (isValidVal(deadlift)) { newEval.strength.deadlift.current = deadlift; hasNewData = true; }
+                    if (isValidVal(pullups)) { newEval.strength.pullups.weight = pullups; hasNewData = true; }
+
+                    if (isValidVal(grip)) { newEval.grappling.gripStrength.current = grip; hasNewData = true; }
+                    if (isValidVal(kimono)) { newEval.grappling.kimonoReps.current = kimono; hasNewData = true; }
+
+                    if (hasNewData) {
+                        if (!athleteData.evaluations) athleteData.evaluations = [];
+                        athleteData.evaluations.push(newEval);
+                    }
 
                     batch.set(athleteRef, athleteData, { merge: true });
                     count++;
                 }
 
-                if(count > 0) {
+                if (count > 0) {
                     await batch.commit();
                     setMsg(`¡Importación exitosa! Se procesaron ${count} atletas.`);
                 } else {
@@ -354,12 +372,12 @@
                                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                 ) : '📥 Importar'}
                             </button>
-                            <input 
-                                type="file" 
-                                accept=".csv" 
-                                ref={fileInputRef} 
-                                onChange={handleFileUpload} 
-                                className="hidden" 
+                            <input
+                                type="file"
+                                accept=".csv"
+                                ref={fileInputRef}
+                                onChange={handleFileUpload}
+                                className="hidden"
                             />
                         </div>
 

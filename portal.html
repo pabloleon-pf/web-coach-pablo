@@ -225,7 +225,7 @@
         const SrpeModule = ({ email }) => {
             const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
             const [rpe, setRpe] = useState(null);
-            const [duracion, setDuracion] = useState(null);
+            const [duracion, setDuracion] = useState('90');
             const [loading, setLoading] = useState(false);
             const [history, setHistory] = useState([]);
 
@@ -260,7 +260,7 @@
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     setRpe(null);
-                    setDuracion(null);
+                    setDuracion('90');
                     alert("¡Registro guardado correctamente!");
                 } catch (error) {
                     console.error("Error", error);
@@ -301,13 +301,14 @@
                             </div>
                             <div>
                                 <label className="block text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Duración (Minutos)</label>
-                                <div className="grid grid-cols-4 gap-2">
-                                    {[30, 60, 90, 120].map(val => (
-                                        <button type="button" key={val} onClick={() => setDuracion(val)} className={`py-3 rounded-lg font-bold transition-colors ${duracion === val ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}>
-                                            {val}
-                                        </button>
-                                    ))}
-                                </div>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={duracion}
+                                    onChange={e => setDuracion(e.target.value)}
+                                    required
+                                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white font-bold focus:outline-none focus:border-orange-500 transition-colors text-center text-lg"
+                                />
                             </div>
                             <button type="submit" disabled={loading} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-colors mt-4">
                                 {loading ? 'Guardando...' : 'Registrar sRPE'}

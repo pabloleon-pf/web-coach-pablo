@@ -176,10 +176,17 @@
                         </div>
                         <div className="p-4 grid grid-cols-2 gap-4 relative z-10">
                             <div className="bg-slate-900/60 backdrop-blur rounded-lg p-3 border border-slate-800 shadow-inner">
-                                <div className="flex justify-between items-center mb-1"><span className="text-xs text-slate-300 block mb-1 font-medium">Agarre (Grip)</span><span className="text-[9px] text-slate-500">{getMetric('grappling', 'gripStrength').date}</span></div>
+                                <div className="flex justify-between items-center mb-1"><span className="text-xs text-slate-300 block mb-1 font-medium">Grip (Der)</span><span className="text-[9px] text-slate-500">{getMetric('grappling', 'gripStrengthRight').date}</span></div>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-xl font-bold text-white">{getMetric('grappling', 'gripStrength').current || '-'}</span>
-                                    <TrendBadge current={getMetric('grappling', 'gripStrength').current} previous={getMetric('grappling', 'gripStrength').previous} />
+                                    <span className="text-xl font-bold text-white">{getMetric('grappling', 'gripStrengthRight').current || '-'}</span>
+                                    <TrendBadge current={getMetric('grappling', 'gripStrengthRight').current} previous={getMetric('grappling', 'gripStrengthRight').previous} />
+                                </div>
+                            </div>
+                            <div className="bg-slate-900/60 backdrop-blur rounded-lg p-3 border border-slate-800 shadow-inner">
+                                <div className="flex justify-between items-center mb-1"><span className="text-xs text-slate-300 block mb-1 font-medium">Grip (Izq)</span><span className="text-[9px] text-slate-500">{getMetric('grappling', 'gripStrengthLeft').date}</span></div>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-xl font-bold text-white">{getMetric('grappling', 'gripStrengthLeft').current || '-'}</span>
+                                    <TrendBadge current={getMetric('grappling', 'gripStrengthLeft').current} previous={getMetric('grappling', 'gripStrengthLeft').previous} />
                                 </div>
                             </div>
                             <div className="bg-slate-900/60 backdrop-blur rounded-lg p-3 border border-slate-800 shadow-inner">
@@ -257,8 +264,10 @@
                     dropJump: { height: '', rsi: '' }
                 },
                 grappling: {
-                    gripStrength: { current: '' },
-                    kimonoReps: { current: '' }
+                    gripStrengthRight: { current: '' },
+                    gripStrengthLeft: { current: '' },
+                    kimonoReps: { current: '' },
+                    kimonoTime: { current: '' }
                 },
                 strength: {
                     squat: { current: '' },
@@ -385,13 +394,8 @@
                     const pullups = getCol(row, ['dominadas', 'pull-up', 'pullup']);
 
                     // Match specific variants with parentheses to prevent failure on "Handgrip (D)"
-                    const gripRight = getCol(row, ['handgrip derecha', 'handgrip (d)', 'grip (d)', 'handgrip d', 'grip d', 'derecha']);
+                    const gripRight = getCol(row, ['handgrip derecha', 'handgrip (d)', 'grip (d)', 'handgrip d', 'grip d', 'derecha', 'handgrip']); // Added fallback to handgrip if only 1 exists
                     const gripLeft = getCol(row, ['handgrip izquierda', 'handgrip (i)', 'grip (i)', 'handgrip i', 'grip i', 'izquierda']);
-                    let grip = '';
-                    if (gripRight && gripLeft) grip = `${gripRight} (D) / ${gripLeft} (I)`;
-                    else if (gripRight) grip = `${gripRight} (D)`;
-                    else if (gripLeft) grip = `${gripLeft} (I)`;
-                    else grip = getCol(row, ['handgrip']); // fallback
 
                     const kimono = getCol(row, ['rept con gi', 'kimono']);
                     const kimonoTime = getCol(row, ['tiempo con gi', 'tiempo']);
@@ -439,7 +443,8 @@
                         if (isValidVal(deadlift)) { newEval.strength.deadlift.current = deadlift; hasNewData = true; }
                         if (isValidVal(pullups)) { newEval.strength.pullups.weight = pullups; hasNewData = true; }
 
-                        if (isValidVal(grip)) { newEval.grappling.gripStrength.current = grip; hasNewData = true; }
+                        if (isValidVal(gripRight)) { newEval.grappling.gripStrengthRight.current = gripRight; hasNewData = true; }
+                        if (isValidVal(gripLeft)) { newEval.grappling.gripStrengthLeft.current = gripLeft; hasNewData = true; }
                         if (isValidVal(kimono)) { newEval.grappling.kimonoReps.current = kimono; hasNewData = true; }
                         if (isValidVal(kimonoTime)) { newEval.grappling.kimonoTime = { current: kimonoTime }; hasNewData = true; }
 
@@ -469,7 +474,8 @@
                                 if (isValidVal(deadlift)) safeSet(existing, 'strength', 'deadlift', 'current', deadlift);
                                 if (isValidVal(pullups)) safeSet(existing, 'strength', 'pullups', 'weight', pullups);
 
-                                if (isValidVal(grip)) safeSet(existing, 'grappling', 'gripStrength', 'current', grip);
+                                if (isValidVal(gripRight)) safeSet(existing, 'grappling', 'gripStrengthRight', 'current', gripRight);
+                                if (isValidVal(gripLeft)) safeSet(existing, 'grappling', 'gripStrengthLeft', 'current', gripLeft);
                                 if (isValidVal(kimono)) safeSet(existing, 'grappling', 'kimonoReps', 'current', kimono);
                                 if (isValidVal(kimonoTime)) safeSet(existing, 'grappling', 'kimonoTime', 'current', kimonoTime);
 

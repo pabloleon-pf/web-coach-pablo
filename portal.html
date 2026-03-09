@@ -214,6 +214,125 @@
                 </div>
             );
         };
+        const getISOWeek = (dateStr) => {
+            const d = new Date(dateStr);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        };
+
+        const SrpeModule = ({ email }) => {
+            const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+            const [rpe, setRpe] = useState(null);
+            const [duracion, setDuracion] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [history, setHistory] = useState([]);
+
+            useEffect(() => {
+                const unsubscribe = db.collection("athletes").doc(email).collection("monitoreo_diario")
+                    .orderBy("fecha_sesion", "asc")
+                    .onSnapshot(snap => {
+                        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        setHistory(data);
+                    });
+                return () => unsubscribe();
+            }, [email]);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!fecha || !rpe || !duracion) return alert("Completa todos los campos (Fecha, RPE y Duración)");
+                setLoading(true);
+                const [year, month, day] = fecha.split('-');
+                const dateObj = new Date(year, month - 1, day);
+                const anio = dateObj.getFullYear();
+                const semana_del_ano = getISOWeek(fecha);
+                const srpe = parseInt(rpe) * parseInt(duracion);
+
+                try {
+                    await db.collection("athletes").doc(email).collection("monitoreo_diario").add({
+                        fecha_sesion: fecha,
+                        rpe: parseInt(rpe),
+                        duracion: parseInt(duracion),
+                        srpe: srpe,
+                        semana_del_ano,
+                        anio,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    setRpe(null);
+                    setDuracion(null);
+                    alert("¡Registro guardado correctamente!");
+                } catch (error) {
+                    console.error("Error", error);
+                    alert("Hubo un error al guardar");
+                }
+                setLoading(false);
+            };
+
+            const weeklyVolume = {};
+            history.forEach(item => {
+                const key = `Sem. ${item.semana_del_ano}`;
+                if (!weeklyVolume[key]) weeklyVolume[key] = 0;
+                weeklyVolume[key] += item.srpe;
+            });
+
+            const maxVolume = Math.max(...Object.values(weeklyVolume), 1000);
+
+            return (
+                <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg mb-6">
+                    <div className="bg-slate-800/50 p-4 border-b border-slate-800">
+                        <h3 className="font-bold tracking-wide">Monitoreo sRPE</h3>
+                    </div>
+                    <div className="p-4">
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Fecha de Sesión</label>
+                                <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} required className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Percepción de Esfuerzo (RPE 1-10)</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
+                                        <button type="button" key={val} onClick={() => setRpe(val)} className={`flex-1 min-w-[2.5rem] py-3 rounded-lg font-bold transition-colors ${rpe === val ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}>
+                                            {val}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Duración (Minutos)</label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {[30, 60, 90, 120].map(val => (
+                                        <button type="button" key={val} onClick={() => setDuracion(val)} className={`py-3 rounded-lg font-bold transition-colors ${duracion === val ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}>
+                                            {val}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <button type="submit" disabled={loading} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-colors mt-4">
+                                {loading ? 'Guardando...' : 'Registrar sRPE'}
+                            </button>
+                        </form>
+
+                        {Object.keys(weeklyVolume).length > 0 && (
+                            <div className="mt-8">
+                                <h4 className="text-sm font-bold text-slate-300 mb-4">Volumen Acumulado (sRPE)</h4>
+                                <div className="flex items-end gap-2 h-32 pt-6">
+                                    {Object.entries(weeklyVolume).map(([week, vol]) => (
+                                        <div key={week} className="flex-1 flex flex-col items-center justify-end group h-full">
+                                            <div className="w-full max-w-[40px] bg-orange-500 rounded-t-sm transition-all relative" style={{ height: `${Math.max((vol / maxVolume) * 100, 5)}%` }}>
+                                                <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-bold bg-slate-800 px-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{vol}</span>
+                                            </div>
+                                            <span className="text-[10px] text-slate-500 mt-2 whitespace-nowrap">{week}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </section>
+            );
+        };
 
         const DashboardView = ({ onLogout, data }) => {
 
@@ -304,6 +423,11 @@
                                 <span className="font-bold text-sm leading-tight">{data.summary?.nextGoal || '-'}</span>
                             </div>
                         </div>
+
+                        {/* Módulo de Monitoreo sRPE */}
+                        {(data?.email || '').toLowerCase().includes('matimuller') && (
+                            <SrpeModule email={data.email} />
+                        )}
 
                         {!latestEval ? (
                             <div className="text-center p-10 border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/50 mt-8">
@@ -458,7 +582,7 @@
                             const docRef = db.collection("athletes").doc(emailKey);
                             const docSnap = await docRef.get();
                             if (docSnap.exists) {
-                                setAthleteData(docSnap.data());
+                                setAthleteData({ id: docSnap.id, email: emailKey, ...docSnap.data() });
                             } else {
                                 setAthleteData(null);
                             }

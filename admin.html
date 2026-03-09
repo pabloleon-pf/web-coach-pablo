@@ -549,7 +549,43 @@
                                     </div>
                                 </section>
 
-                                {/* FIXED ACTION BAR at the bottom */}
+                                {/* Evaluaciones de Solo Lectura */}
+                                {formData.evaluations && formData.evaluations.length > 0 && (
+                                    <section className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+                                        <div className="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+                                                <h3 className="text-xl font-bold">Historial de Evaluaciones</h3>
+                                                <p className="text-xs text-slate-500 font-medium ml-2 uppercase tracking-widest hidden md:block">(Lectura desde el Excel)</p>
+                                            </div>
+                                            <div className="text-xs font-bold bg-slate-800 text-slate-400 px-3 py-1 rounded-full">{formData.evaluations.length} Registros</div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {/* We slice and reverse safely strictly for UI to show latest first */}
+                                            {[...formData.evaluations].reverse().map((ev, i) => (
+                                                <div key={i} className="bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-md">
+                                                    <div className="font-bold text-orange-500 mb-3 border-b border-slate-800 pb-2 flex justify-between items-center">
+                                                        <span className="flex items-center gap-2"><svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {ev.date || 'Sin Fecha'}</span>
+                                                        <span className="text-[10px] text-slate-400 font-mono">#{formData.evaluations.length - i}</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-300">
+                                                        {ev.power?.cmj?.current && <p><span className="text-slate-500 font-medium">CMJ:</span> {ev.power.cmj.current}</p>}
+                                                        {ev.power?.dropJump?.rsi && <p><span className="text-slate-500 font-medium">RSI:</span> {ev.power.dropJump.rsi}</p>}
+                                                        {ev.power?.abalakov?.current && <p><span className="text-slate-500 font-medium">Aba:</span> {ev.power.abalakov.current}</p>}
+                                                        {ev.power?.broadJump?.current && <p><span className="text-slate-500 font-medium">Horiz:</span> {ev.power.broadJump.current}</p>}
+                                                        {ev.strength?.squat?.current && <p><span className="text-slate-500 font-medium">Squat:</span> {ev.strength.squat.current}</p>}
+                                                        {ev.strength?.bench?.current && <p><span className="text-slate-500 font-medium">Bench:</span> {ev.strength.bench.current}</p>}
+                                                        {ev.strength?.deadlift?.current && <p><span className="text-slate-500 font-medium">Dead:</span> {ev.strength.deadlift.current}</p>}
+                                                        {ev.grappling?.gripStrength?.current && <p className="col-span-2"><span className="text-slate-500 font-medium">Grip:</span> {ev.grappling.gripStrength.current}</p>}
+                                                        {ev.grappling?.kimonoReps?.current && <p><span className="text-slate-500 font-medium">Gi Rep:</span> {ev.grappling.kimonoReps.current}</p>}
+                                                        {ev.grappling?.kimonoTime?.current && <p><span className="text-slate-500 font-medium">Gi Sec:</span> {ev.grappling.kimonoTime.current}</p>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}                                {/* FIXED ACTION BAR at the bottom */}
                                 <div className="sticky bottom-4 z-50 bg-slate-900/90 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-2xl flex items-center justify-between mt-10">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">

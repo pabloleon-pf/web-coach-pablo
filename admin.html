@@ -305,15 +305,52 @@
                 const lines = csvText.split(/\r?\n/).filter(l => l.trim() !== '');
                 if (lines.length < 2) throw new Error("El archivo está vacío o no tiene datos suficientes.");
 
+                const parseCSVLine = (text, sep) => {
+                    const result = [];
+                    let curVal = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < text.length; i++) {
+                        const char = text[i];
+                        if (inQuotes) {
+                            if (char === '"' && i + 1 < text.length && text[i + 1] === '"') {
+                                curVal += '"'; i++;
+                            } else if (char === '"') {
+                                inQuotes = false;
+                            } else {
+                                curVal += char;
+                            }
+                        } else {
+                            if (char === '"') {
+                                inQuotes = true;
+                            } else if (char === sep) {
+                                result.push(curVal); curVal = '';
+                            } else {
+                                curVal += char;
+                            }
+                        }
+                    }
+                    result.push(curVal);
+                    return result;
+                };
+
                 const separator = lines[0].includes(';') ? ';' : ',';
-                const headers = lines[0].split(separator).map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                const headers = parseCSVLine(lines[0], separator).map(h => h.trim().toLowerCase());
 
                 const getCol = (row, potentialNames) => {
-                    for (let name of potentialNames) {
-                        const idx = headers.findIndex(h => h.includes(name));
-                        if (idx !== -1 && row[idx]) return row[idx].trim().replace(/"/g, '');
+                    let val = '';
+                    for (let name of potentialNames) { // Exact match first
+                        const idx = headers.findIndex(h => h === name);
+                        if (idx !== -1 && row[idx] !== undefined && row[idx] !== null) { val = row[idx].trim(); break; }
                     }
-                    return '';
+                    if (!val) {
+                        for (let name of potentialNames) { // Includes match secondary
+                            const idx = headers.findIndex(h => h.includes(name));
+                            if (idx !== -1 && row[idx] !== undefined && row[idx] !== null) { val = row[idx].trim(); break; }
+                        }
+                    }
+                    // Fix Spanish decimals: "45,5" -> "45.5"
+                    if (/^-?\d+,\d+$/.test(val)) val = val.replace(',', '.');
+                    return val;
                 };
 
                 const batch = db.batch();
@@ -321,7 +358,7 @@
                 const athletesCache = {}; // Cache to prevent overwriting when multiple rows exist for the same athlete
 
                 for (let i = 1; i < lines.length; i++) {
-                    const row = lines[i].split(separator);
+                    const row = parseCSVLine(lines[i], separator);
                     if (row.length < 2) continue;
 
                     const email = getCol(row, ['correo', 'email', 'mail']);

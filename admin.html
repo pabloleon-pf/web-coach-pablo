@@ -172,7 +172,14 @@
                     const deadlift = getCol(row, ['deadlift', 'peso muerto']);
                     const pullups = getCol(row, ['dominadas', 'pull-up (lastre kg)', 'pullup']);
 
-                    const grip = getCol(row, ['handgrip derecha', 'handgrip']);
+                    const gripRight = getCol(row, ['handgrip derecha', 'handgrip d', 'grip d']);
+                    const gripLeft = getCol(row, ['handgrip izquierda', 'handgrip i', 'grip i']);
+                    let grip = '';
+                    if (gripRight && gripLeft) grip = `${gripRight} (D) / ${gripLeft} (I)`;
+                    else if (gripRight) grip = `${gripRight} (D)`;
+                    else if (gripLeft) grip = `${gripLeft} (I)`;
+                    else grip = getCol(row, ['handgrip']); // fallback
+
                     const kimono = getCol(row, ['rept con gi', 'kimono']);
                     const kimonoTime = getCol(row, ['tiempo con gi', 'tiempo']);
 
@@ -184,7 +191,13 @@
                         athleteData = athletesCache[emailKey];
                     } else {
                         const docSnap = await athleteRef.get();
-                        athleteData = docSnap.exists ? docSnap.data() : { ...JSON.parse(JSON.stringify(emptyAthlete)), email: emailKey, name, status };
+                        if (docSnap.exists) {
+                            athleteData = docSnap.data();
+                            // Safely copy evaluations to prevent Firebase array mutation bugs
+                            athleteData.evaluations = athleteData.evaluations ? JSON.parse(JSON.stringify(athleteData.evaluations)) : [];
+                        } else {
+                            athleteData = { ...JSON.parse(JSON.stringify(emptyAthlete)), email: emailKey, name, status };
+                        }
                         athletesCache[emailKey] = athleteData;
                     }
 

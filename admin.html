@@ -338,17 +338,18 @@
                     const date = getCol(row, ['fecha', 'date']); // Remove default to today to prevent accidental current-day entries
 
                     const cmj = getCol(row, ['cmj']);
-                    const abalakov = getCol(row, ['abalakov', 'aba']);
-                    const broadJump = getCol(row, ['salto horizontal']);
+                    const abalakov = getCol(row, ['abalakov']);
+                    const broadJump = getCol(row, ['salto horizontal', 'horizontal']);
                     const rsi = getCol(row, ['rsi']);
 
                     const squat = getCol(row, ['squat', 'sentadilla', 'back squat']);
                     const bench = getCol(row, ['bench', 'pecho', 'bench press']);
                     const deadlift = getCol(row, ['deadlift', 'peso muerto']);
-                    const pullups = getCol(row, ['dominadas', 'pull-up (lastre kg)', 'pullup']);
+                    const pullups = getCol(row, ['dominadas', 'pull-up', 'pullup']);
 
-                    const gripRight = getCol(row, ['handgrip derecha', 'handgrip d', 'grip d']);
-                    const gripLeft = getCol(row, ['handgrip izquierda', 'handgrip i', 'grip i']);
+                    // Match specific variants with parentheses to prevent failure on "Handgrip (D)"
+                    const gripRight = getCol(row, ['handgrip derecha', 'handgrip (d)', 'grip (d)', 'handgrip d', 'grip d', 'derecha']);
+                    const gripLeft = getCol(row, ['handgrip izquierda', 'handgrip (i)', 'grip (i)', 'handgrip i', 'grip i', 'izquierda']);
                     let grip = '';
                     if (gripRight && gripLeft) grip = `${gripRight} (D) / ${gripLeft} (I)`;
                     else if (gripRight) grip = `${gripRight} (D)`;

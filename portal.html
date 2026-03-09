@@ -104,8 +104,9 @@
                         // Sign up
                         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                         // Create initial pending document in Firestore
-                        await db.collection("athletes").doc(userCredential.user.email).set({
-                            email: userCredential.user.email,
+                        const emailKey = userCredential.user.email.toLowerCase();
+                        await db.collection("athletes").doc(emailKey).set({
+                            email: emailKey,
                             name: name || 'Atleta Nuevo',
                             status: 'Pendiente',
                             profileImg: '',
@@ -443,7 +444,8 @@
                     if (currentUser) {
                         setUser(currentUser);
                         try {
-                            const docRef = db.collection("athletes").doc(currentUser.email);
+                            const emailKey = currentUser.email.toLowerCase();
+                            const docRef = db.collection("athletes").doc(emailKey);
                             const docSnap = await docRef.get();
                             if (docSnap.exists) {
                                 setAthleteData(docSnap.data());

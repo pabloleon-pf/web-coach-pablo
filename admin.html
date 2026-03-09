@@ -381,7 +381,7 @@
 
                     const status = getCol(row, ['estado', 'status']) || 'Activo';
                     const weight = getCol(row, ['peso', 'weight']);
-                    const date = getCol(row, ['fecha', 'date']); // Remove default to today to prevent accidental current-day entries
+                    const date = getCol(row, ['fecha', 'date']) || new Date().toLocaleDateString('es-CL');
 
                     const cmj = getCol(row, ['cmj']);
                     const abalakov = getCol(row, ['abalakov']);

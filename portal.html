@@ -235,6 +235,7 @@
             evals.sort((a, b) => parseDate(a.date) - parseDate(b.date));
 
             // Deduplicate to avoid multiple entries on the same day breaking the trend badge
+
             const uniqueEvalsMap = new Map();
             evals.forEach(e => {
                 uniqueEvalsMap.set(e.date, e);
@@ -453,7 +454,7 @@
                     if (currentUser) {
                         setUser(currentUser);
                         try {
-                            const emailKey = currentUser.email.toLowerCase();
+                            const emailKey = currentUser.email.toLowerCase().trim();
                             const docRef = db.collection("athletes").doc(emailKey);
                             const docSnap = await docRef.get();
                             if (docSnap.exists) {

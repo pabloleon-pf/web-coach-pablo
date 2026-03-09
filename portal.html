@@ -305,8 +305,10 @@
                         </div>
 
                         {!latestEval ? (
-                            <div className="text-center p-10 border-2 border-dashed border-slate-800 rounded-2xl">
-                                <p className="text-slate-400">Aún no hay evaluaciones registradas para ti.</p>
+                            <div className="text-center p-10 border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/50 mt-8">
+                                <IconTarget className="w-12 h-12 text-slate-700 mx-auto mb-4" />
+                                <h3 className="text-lg font-bold text-slate-300 mb-1">Sin evaluaciones</h3>
+                                <p className="text-slate-500 text-sm">Tu cuenta está activa, pero aún no tienes evaluaciones registradas en el sistema.</p>
                             </div>
                         ) : (
                             <>

@@ -966,6 +966,55 @@
             const [editRpe, setEditRpe] = useState('');
             const [editDuracion, setEditDuracion] = useState('');
 
+            // states para ingreso manual
+            const [newFecha, setNewFecha] = useState('');
+            const [newRpe, setNewRpe] = useState('');
+            const [newDuracion, setNewDuracion] = useState('60');
+            const [saving, setSaving] = useState(false);
+
+            const obtenerSemanaDelAno = (fecha) => {
+                const d = new Date(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()));
+                const numDia = d.getUTCDay() || 7;
+                d.setUTCDate(d.getUTCDate() + 4 - numDia);
+                const inicioAno = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                return Math.ceil((((d - inicioAno) / 86400000) + 1) / 7);
+            };
+
+            const handleAddRecord = async (e) => {
+                e.preventDefault();
+                if (!newFecha || !newRpe || !newDuracion) return alert('Completa todos los campos');
+                setSaving(true);
+                try {
+                    const fechaObj = new Date(newFecha + 'T12:00:00Z');
+                    const semana = obtenerSemanaDelAno(fechaObj);
+                    const anio = fechaObj.getFullYear();
+                    const rpeVal = parseInt(newRpe, 10);
+                    const durVal = parseInt(newDuracion, 10);
+                    const srpeVal = rpeVal * durVal;
+
+                    const normalizedEmail = email.trim().toLowerCase();
+
+                    await db.collection('athletes').doc(normalizedEmail)
+                        .collection('monitoreo_diario').add({
+                            fecha_sesion: newFecha,
+                            rpe: rpeVal,
+                            duracion: durVal,
+                            srpe: srpeVal,
+                            semana_del_ano: semana,
+                            anio: anio,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                    setNewFecha('');
+                    setNewRpe('');
+                    setNewDuracion('60');
+                } catch (err) {
+                    console.error('Error al guardar:', err);
+                    alert('Error al guardar el registro');
+                }
+                setSaving(false);
+            };
+
             // Fetch data
             useEffect(() => {
                 if (!email) return;
@@ -1051,6 +1100,38 @@
 
             return (
                 <div className="space-y-6">
+                    {/* Formulario de Ingreso Manual Admin */}
+                    <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+                        <h4 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
+                            <i className="fas fa-plus-circle text-orange-500"></i>
+                            Añadir Registro Manual (Historial)
+                        </h4>
+                        <form onSubmit={handleAddRecord} className="flex flex-col md:flex-row gap-4 items-end">
+                            <div className="flex-1 w-full relative">
+                                <label className="block text-xs text-slate-400 mb-1 ml-1 font-semibold uppercase tracking-wider">Fecha de Sesión</label>
+                                <input type="date" value={newFecha} onChange={e => setNewFecha(e.target.value)} required className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all" />
+                            </div>
+                            <div className="flex-1 w-full relative">
+                                <label className="block text-xs text-slate-400 mb-1 ml-1 font-semibold uppercase tracking-wider">RPE (1-10)</label>
+                                <input type="number" min="1" max="10" value={newRpe} onChange={e => setNewRpe(e.target.value)} required placeholder="Ej: 7" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all" />
+                            </div>
+                            <div className="flex-1 w-full relative">
+                                <label className="block text-xs text-slate-400 mb-1 ml-1 font-semibold uppercase tracking-wider">Duración (Minutos)</label>
+                                <select value={newDuracion} onChange={e => setNewDuracion(e.target.value)} required className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all appearance-none cursor-pointer">
+                                    <option value="30">30 min</option>
+                                    <option value="60">60 min</option>
+                                    <option value="90">90 min</option>
+                                    <option value="120">120 min</option>
+                                    <option value="150">150 min</option>
+                                    <option value="180">180 min</option>
+                                </select>
+                            </div>
+                            <button type="submit" disabled={saving} className="w-full md:w-auto bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:opacity-50 h-[42px] flex items-center justify-center min-w-[120px]">
+                                {saving ? <i className="fas fa-spinner fa-spin"></i> : 'Guardar'}
+                            </button>
+                        </form>
+                    </div>
+
                     {/* Mixed Chart */}
                     <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
                         <h4 className="text-sm font-bold text-slate-300 mb-6 flex items-center gap-2">

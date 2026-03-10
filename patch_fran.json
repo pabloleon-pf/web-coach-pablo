@@ -1,0 +1,58 @@
+{
+  "fields": {
+    "evaluations": {
+      "arrayValue": {
+        "values": [
+          {
+            "mapValue": {
+              "fields": {
+                "date": { "stringValue": "22/1/2026" },
+                "power": {
+                  "mapValue": {
+                    "fields": {
+                      "cmj": { "mapValue": { "fields": { "current": { "stringValue": "40.0" } } } },
+                      "abalakov": { "mapValue": { "fields": { "current": { "stringValue": "56.0" } } } },
+                      "broadJump": { "mapValue": { "fields": { "current": { "stringValue": "126.0" } } } }
+                    }
+                  }
+                },
+                "grappling": {
+                  "mapValue": {
+                    "fields": {
+                      "kimonoTime": { "mapValue": { "fields": { "current": { "stringValue": "13" } } } },
+                      "gripStrength": { "mapValue": { "fields": { "current": { "stringValue": "50.0" } } } }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "mapValue": {
+              "fields": {
+                "date": { "stringValue": "12/2/2026" },
+                "power": {
+                  "mapValue": {
+                    "fields": {
+                      "cmj": { "mapValue": { "fields": { "current": { "stringValue": "50.0" } } } },
+                      "abalakov": { "mapValue": { "fields": { "current": { "stringValue": "60.9" } } } },
+                      "broadJump": { "mapValue": { "fields": { "current": { "stringValue": "128.0" } } } }
+                    }
+                  }
+                },
+                "grappling": {
+                  "mapValue": {
+                    "fields": {
+                      "kimonoTime": { "mapValue": { "fields": { "current": { "stringValue": "14" } } } },
+                      "gripStrength": { "mapValue": { "fields": { "current": { "stringValue": "67.0" } } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

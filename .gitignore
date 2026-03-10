@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Mac OS
+.DS_Store
+
+# Vercel
+.vercel
+
+# Environments
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+venv/
+env/
+
+# Build and temp
+export/
+*.log

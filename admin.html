@@ -1180,9 +1180,9 @@
                                 <div className="mt-4">
                                     <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto" style={{ maxHeight: '300px' }}>
                                         <defs>
-                                            <linearGradient id="barGradient" x1="0%" y1="100%" x2="0%" y2="0%">
-                                                <stop offset="0%" stopColor="#ea580c" />
-                                                <stop offset="100%" stopColor="#f97316" />
+                                            <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" stopColor="#f97316" stopOpacity="0.8" />
+                                                <stop offset="100%" stopColor="#ea580c" stopOpacity="0.05" />
                                             </linearGradient>
                                             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
                                                 <feGaussianBlur stdDeviation="2" result="blur" />
@@ -1214,27 +1214,54 @@
                                             </text>
                                         ))}
 
-                                        {/* Bars */}
+                                        {/* sRPE Volume Area Chart */}
+                                        {chartData.length > 0 && (() => {
+                                            const firstX = padL + gap / 2;
+                                            let areaPath = `M ${firstX},${padT + chartH} `;
+                                            let linePath = `M ${firstX},${padT + chartH - (chartData[0].sumSrpe / maxVolume) * chartH} `;
+
+                                            chartData.forEach((d, i) => {
+                                                const cx = padL + gap * i + gap / 2;
+                                                const cy = padT + chartH - (d.sumSrpe / maxVolume) * chartH;
+
+                                                if (i === 0) {
+                                                    areaPath += `L ${cx},${cy} `;
+                                                } else {
+                                                    const prevCx = padL + gap * (i - 1) + gap / 2;
+                                                    const prevCy = padT + chartH - (chartData[i - 1].sumSrpe / maxVolume) * chartH;
+                                                    const cp1x = prevCx + (cx - prevCx) * 0.5;
+                                                    const cp2x = cx - (cx - prevCx) * 0.5;
+                                                    areaPath += `C ${cp1x},${prevCy} ${cp2x},${cy} ${cx},${cy} `;
+                                                    linePath += `C ${cp1x},${prevCy} ${cp2x},${cy} ${cx},${cy} `;
+                                                }
+                                            });
+                                            const lastX = padL + gap * (chartData.length - 1) + gap / 2;
+                                            areaPath += `L ${lastX},${padT + chartH} Z`;
+
+                                            return (
+                                                <g>
+                                                    <path d={areaPath} fill="url(#areaGradient)" />
+                                                    <path d={linePath} fill="none" stroke="#f97316" strokeWidth="3" filter="url(#glow)" strokeLinecap="round" strokeLinejoin="round" />
+                                                </g>
+                                            );
+                                        })()}
+
+                                        {/* sRPE Data Points & Labels */}
                                         {chartData.map((d, i) => {
                                             const cx = padL + gap * i + gap / 2;
-                                            const barH = (d.sumSrpe / maxVolume) * chartH;
+                                            const cy = padT + chartH - (d.sumSrpe / maxVolume) * chartH;
                                             return (
-                                                <g key={`bar-${i}`} className="cursor-pointer transition-opacity hover:opacity-100 group">
-                                                    <rect
-                                                        x={cx - barW / 2}
-                                                        y={padT + chartH - barH}
-                                                        width={barW}
-                                                        height={barH}
-                                                        fill="url(#barGradient)"
-                                                        opacity="0.9"
-                                                        rx="4"
-                                                        className="transition-all duration-300 hover:brightness-110"
+                                                <g key={`srpe-pt-${i}`} className="cursor-pointer group relative">
+                                                    <circle cx={cx} cy={cy} r="4" fill="#1e293b" stroke="#f97316" strokeWidth="2.5"
+                                                        className="transition-all duration-300 group-hover:scale-150 group-hover:fill-[#f97316]"
                                                     >
                                                         <title>{`Semana ${d.weekStr.replace('Semana ', '')}: ${Math.round(d.sumSrpe)} sRPE`}</title>
-                                                    </rect>
-                                                    {/* Volume value on top of bar */}
-                                                    <text x={cx} y={padT + chartH - barH - 6}
-                                                        textAnchor="middle" fill="#fb923c" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                                                    </circle>
+                                                    {/* Volume value on top of point */}
+                                                    <text x={cx} y={cy - 12}
+                                                        textAnchor="middle" fill="#fb923c" fontSize="10" fontWeight="bold" fontFamily="monospace"
+                                                        className="opacity-80 group-hover:opacity-100 drop-shadow-md transition-opacity"
+                                                    >
                                                         {d.sumSrpe}
                                                     </text>
                                                     {/* X-axis label */}

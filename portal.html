@@ -569,7 +569,16 @@
                         <div className="flex items-center gap-3">
                             <img src={data.profileImg || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.name}&backgroundColor=f97316`} alt="Perfil" className="w-12 h-12 rounded-full border-2 border-slate-700 bg-slate-800" />
                             <div>
-                                <h2 className="text-lg font-bold">Hola, {data.name}</h2>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <h2 className="text-lg font-bold">Hola, {data.name}</h2>
+                                    {data.isCompetitor && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase"
+                                            style={{ background: 'linear-gradient(135deg, #1c1917 0%, #292524 100%)', border: '1px solid #f97316', color: '#fb923c', letterSpacing: '0.1em', boxShadow: '0 0 8px rgba(249,115,22,0.3)' }}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                                            Competitivo
+                                        </span>
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                                     <span className="text-xs text-green-400 font-medium tracking-wide">{data.status || 'Activo'}</span>
@@ -600,8 +609,8 @@
                             </div>
                         </div>
 
-                        {/* Módulo de Monitoreo sRPE */}
-                        {(data?.email || '').toLowerCase().includes('matimuller') && (
+                        {/* Módulo de Monitoreo sRPE - solo para atletas competitivos */}
+                        {data?.isCompetitor && (
                             <SrpeModule email={data.email} />
                         )}
 

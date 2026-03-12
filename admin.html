@@ -91,7 +91,7 @@
             );
         };
 
-        const AthleteDashboardPreview = ({ formData }) => {
+        const AthleteDashboardPreview = ({ formData, bodyWeight }) => {
             if (!formData || !formData.evaluations || formData.evaluations.length === 0) return null;
 
             const evals = [...formData.evaluations];
@@ -210,40 +210,52 @@
                     <section className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
                         <div className="bg-slate-800/50 p-4 border-b border-slate-800 flex flex-col gap-1">
                             <h3 className="font-bold tracking-wide">Fuerza Máxima (RM Indirecto)</h3>
+                            {bodyWeight && <p className="text-xs text-slate-500">Peso corporal referencia: <span className="text-orange-400 font-semibold">{bodyWeight} kg</span></p>}
                         </div>
-                        <div className="divide-y divide-slate-800">
-                            <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
-                                <div className="flex flex-col"><span className="text-slate-300 font-medium">Back Squat</span><span className="text-[10px] text-slate-500">{getMetric('strength', 'squat').date}</span></div>
-                                <div className="flex items-center gap-3">
-                                    <span className="font-bold text-lg">{getMetric('strength', 'squat').current || '-'}</span>
-                                    <TrendBadge current={getMetric('strength', 'squat').current} previous={getMetric('strength', 'squat').previous} />
+                        {(() => {
+                            const bw = bodyWeight ? parseFloat(String(bodyWeight).replace(',', '.')) : null;
+                            const xBW = (val) => {
+                                if (!bw || bw <= 0 || val === null || val === undefined || val === '') return null;
+                                const num = parseFloat(String(val).replace(',', '.'));
+                                if (isNaN(num)) return null;
+                                return (num / bw).toFixed(2);
+                            };
+                            return (
+                                <div className="divide-y divide-slate-800">
+                                    {[{ label: 'Back Squat', cat: 'strength', key: 'squat' },
+                                    { label: 'Bench Press', cat: 'strength', key: 'bench' },
+                                    { label: 'Deadlift', cat: 'strength', key: 'deadlift' }].map(({ label, cat, key }) => {
+                                        const m = getMetric(cat, key);
+                                        const multiplier = xBW(m.current);
+                                        return (
+                                            <div key={key} className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
+                                                <div className="flex flex-col"><span className="text-slate-300 font-medium">{label}</span><span className="text-[10px] text-slate-500">{m.date}</span></div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="font-bold text-lg">{m.current || '-'}</span>
+                                                        {multiplier && <span className="text-xs text-orange-400 font-semibold">{multiplier}x BW</span>}
+                                                    </div>
+                                                    <TrendBadge current={m.current} previous={m.previous} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
+                                        <div className="flex flex-col">
+                                            <div className="flex flex-col"><span className="text-slate-300 font-medium">Dominadas Lastradas</span><span className="text-[10px] text-slate-500">{getMetric('strength', 'pullups', 'weight').date}</span></div>
+                                            <span className="text-[10px] text-orange-400 font-semibold tracking-wide uppercase mt-0.5">{getMetric('strength', 'pullups', 'reps').current || '0'} Repeticiones</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex flex-col items-end">
+                                                <span className="font-bold text-lg">{getMetric('strength', 'pullups', 'weight').current || '-'}</span>
+                                                {xBW(getMetric('strength', 'pullups', 'weight').current) && <span className="text-xs text-orange-400 font-semibold">{xBW(getMetric('strength', 'pullups', 'weight').current)}x BW</span>}
+                                            </div>
+                                            <TrendBadge current={getMetric('strength', 'pullups', 'weight').current} previous={getMetric('strength', 'pullups', 'weight').previous} />
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
-                                <div className="flex flex-col"><span className="text-slate-300 font-medium">Bench Press</span><span className="text-[10px] text-slate-500">{getMetric('strength', 'bench').date}</span></div>
-                                <div className="flex items-center gap-3">
-                                    <span className="font-bold text-lg">{getMetric('strength', 'bench').current || '-'}</span>
-                                    <TrendBadge current={getMetric('strength', 'bench').current} previous={getMetric('strength', 'bench').previous} />
-                                </div>
-                            </div>
-                            <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
-                                <div className="flex flex-col"><span className="text-slate-300 font-medium">Deadlift</span><span className="text-[10px] text-slate-500">{getMetric('strength', 'deadlift').date}</span></div>
-                                <div className="flex items-center gap-3">
-                                    <span className="font-bold text-lg">{getMetric('strength', 'deadlift').current || '-'}</span>
-                                    <TrendBadge current={getMetric('strength', 'deadlift').current} previous={getMetric('strength', 'deadlift').previous} />
-                                </div>
-                            </div>
-                            <div className="flex justify-between items-center p-4 hover:bg-slate-800/30 transition-colors">
-                                <div className="flex flex-col">
-                                    <div className="flex flex-col"><span className="text-slate-300 font-medium">Dominadas Lastradas</span><span className="text-[10px] text-slate-500">{getMetric('strength', 'pullups', 'weight').date}</span></div>
-                                    <span className="text-[10px] text-orange-400 font-semibold tracking-wide uppercase mt-0.5">{getMetric('strength', 'pullups', 'reps').current || '0'} Repeticiones</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="font-bold text-lg">{getMetric('strength', 'pullups', 'weight').current || '-'}</span>
-                                    <TrendBadge current={getMetric('strength', 'pullups', 'weight').current} previous={getMetric('strength', 'pullups', 'weight').previous} />
-                                </div>
-                            </div>
-                        </div>
+                            );
+                        })()}
                     </section>
                 </div>
             );
@@ -383,7 +395,7 @@
                     }
 
                     const status = getCol(row, ['estado', 'status']) || 'Activo';
-                    const weight = getCol(row, ['peso', 'weight']);
+                    const weight = getCol(row, ['peso corporal', 'body weight', 'bodyweight', 'weight', 'peso kg', 'peso (kg)']);
                     const date = getCol(row, ['fecha', 'date']) || new Date().toLocaleDateString('es-CL');
 
                     const cmj = getCol(row, ['cmj']);
@@ -814,9 +826,8 @@
                                         <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="URL Foto Perfil (Opcional)" path="profileImg" placeholder="https://..." />
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-slate-800/50">
-                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Peso Corporal" path="summary.bodyWeight" placeholder="ej. 75 kg" />
-                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Fuerza Relativa" path="summary.relativeStrength" placeholder="ej. 2.5x BW" />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-800/50">
+                                        <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Peso Corporal (kg)" path="summary.bodyWeight" placeholder="ej. 75" />
                                         <InputField formData={formData} selectedEmail={selectedEmail} updateField={updateField} label="Próximo Objetivo" path="summary.nextGoal" placeholder="ej. Torneo Suramericano" />
                                     </div>
                                 </section>
@@ -853,7 +864,7 @@
                                                 <p className="text-xs text-slate-500 font-medium ml-2 uppercase tracking-widest hidden md:block">(Modo Solo Lectura - Como lo vería este atleta)</p>
                                             </div>
                                         </div>
-                                        <AthleteDashboardPreview formData={formData} />
+                                        <AthleteDashboardPreview formData={formData} bodyWeight={formData.summary && formData.summary.bodyWeight} />
                                     </section>
                                 )}
 

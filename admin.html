@@ -999,6 +999,7 @@
             const [editDuracion, setEditDuracion] = useState('');
             const [editSesiones, setEditSesiones] = useState('');
             const [editSemana, setEditSemana] = useState('');
+            const [expandedWk, setExpandedWk] = useState(null);
 
             // states para ingreso manual
             const [newFecha, setNewFecha] = useState('');
@@ -1358,100 +1359,110 @@
                         })()}
                     </div>
 
-                    {/* Data Table */}
-                    <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-400 uppercase bg-slate-900/50 border-b border-slate-800 hidden md:table-header-group">
-                                    <tr>
-                                        <th className="px-6 py-3">Fecha</th>
-                                        <th className="px-6 py-3 text-center">RPE</th>
-                                        <th className="px-6 py-3 text-center">Duración</th>
-                                        <th className="px-6 py-3 text-center">Sesiones</th>
-                                        <th className="px-6 py-3 text-center">sRPE</th>
-                                        <th className="px-6 py-3 text-center">ISO Week</th>
-                                        <th className="px-6 py-3 text-right">Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {logs.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="6" className="px-6 py-8 text-center text-slate-500">No hay registros de sRPE.</td>
-                                        </tr>
-                                    ) : (
-                                        logs.map(log => (
-                                            <tr key={log.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors flex flex-col md:table-row py-4 md:py-0">
-                                                <td className="px-6 py-4 border-b md:border-b-0 border-slate-800/50">
-                                                    <span className="hidden md:inline font-mono">{log.fecha_sesion}</span>
-                                                    <div className="md:hidden flex justify-between font-bold text-white mb-2 pb-2 border-b border-slate-800/50">
-                                                        <span>{log.fecha_sesion}</span>
-                                                        <span className="text-slate-500 text-xs">Semana {log.semana_del_ano}</span>
-                                                    </div>
-                                                </td>
-                                                {editingId === log.id ? (
-                                                    <td colSpan="5" className="px-6 py-4 space-y-4 md:space-y-0 md:flex md:gap-4 md:items-center">
-                                                        <div className="flex flex-col">
-                                                            <label className="text-xs text-slate-500 mb-1">RPE</label>
-                                                            <input type="number" min="1" max="10" value={editRpe} onChange={e => setEditRpe(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-16 text-white focus:border-orange-500 outline-none" />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <label className="text-xs text-slate-500 mb-1">Minutos</label>
-                                                            <input type="number" min="1" value={editDuracion} onChange={e => setEditDuracion(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-20 text-white focus:border-orange-500 outline-none" />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <label className="text-xs text-slate-500 mb-1">Sesiones</label>
-                                                            <input type="number" min="1" value={editSesiones} onChange={e => setEditSesiones(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-16 text-white focus:border-orange-500 outline-none" />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <label className="text-xs text-slate-500 mb-1">ISO Week</label>
-                                                            <input type="number" min="1" max="53" value={editSemana} onChange={e => setEditSemana(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-16 text-white focus:border-orange-500 outline-none" />
-                                                        </div>
-                                                    </td>
-                                                ) : (
-                                                    <>
-                                                        <td className="px-6 md:py-4 text-slate-300 md:text-center flex justify-between md:table-cell py-1">
-                                                            <span className="md:hidden text-slate-500">RPE:</span> {log.rpe}
-                                                        </td>
-                                                        <td className="px-6 md:py-4 text-slate-300 md:text-center flex justify-between md:table-cell py-1">
-                                                            <span className="md:hidden text-slate-500">Duración:</span> {log.duracion} min
-                                                        </td>
-                                                        <td className="px-6 md:py-4 text-slate-300 md:text-center flex justify-between md:table-cell py-1">
-                                                            <span className="md:hidden text-slate-500">Sesiones:</span> {log.sesiones || 1}
-                                                        </td>
-                                                        <td className="px-6 md:py-4 font-mono text-orange-400 md:text-center flex justify-between md:table-cell py-1 font-bold">
-                                                            <span className="md:hidden text-slate-500 font-normal">sRPE:</span> {log.srpe}
-                                                        </td>
-                                                        <td className="px-6 md:py-4 text-slate-500 md:text-center hidden md:table-cell">
-                                                            {log.semana_del_ano}
-                                                        </td>
-                                                    </>
-                                                )}
-                                                <td className="px-6 py-4 md:text-right mt-2 md:mt-0 flex justify-end gap-2">
-                                                    {editingId === log.id ? (
-                                                        <>
-                                                            <button onClick={() => saveEdit(log)} className="text-green-500 hover:text-white hover:bg-green-600 bg-green-500/10 px-3 py-1.5 rounded text-xs transition-colors">Guardar</button>
-                                                            <button onClick={() => setEditingId(null)} className="text-slate-400 hover:text-white hover:bg-slate-600 bg-slate-800 px-3 py-1.5 rounded text-xs transition-colors">Cancelar</button>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <button onClick={() => startEdit(log)} className="text-blue-500 hover:text-white hover:bg-blue-600 bg-blue-500/10 px-3 py-1.5 rounded text-xs transition-colors">Editar</button>
-                                                            <button
-                                                                onClick={() => handleDelete(log.id)}
-                                                                disabled={deletingId === log.id}
-                                                                className="text-red-500 hover:text-white hover:bg-red-600 bg-red-500/10 px-3 py-1.5 rounded text-xs transition-colors disabled:opacity-50"
-                                                            >
-                                                                {deletingId === log.id ? 'Borrando...' : 'Eliminar'}
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                </td>
+                    {/* Weekly Grouped Summary Table */}
+                    {(() => {
+                        // Group logs by ISO week
+                        const grouped = {};
+                        logs.forEach(log => {
+                            const wk = log.semana_del_ano;
+                            if (!grouped[wk]) grouped[wk] = { week: wk, rpeSum: 0, rpeCount: 0, durSum: 0, sesSum: 0, srpeSum: 0, records: [] };
+                            const rpe = parseFloat(log.rpe) || 0;
+                            const dur = parseInt(log.duracion) || 0;
+                            const ses = parseInt(log.sesiones) || 1;
+                            const srpe = parseFloat(log.srpe) || 0;
+                            if (rpe > 0) { grouped[wk].rpeSum += rpe; grouped[wk].rpeCount += 1; }
+                            grouped[wk].durSum += dur;
+                            grouped[wk].sesSum += ses;
+                            grouped[wk].srpeSum += srpe;
+                            grouped[wk].records.push(log);
+                        });
+                        const weeks = Object.values(grouped).sort((a, b) => a.week - b.week);
+
+                        if (weeks.length === 0) return (
+                            <div className="bg-slate-950 rounded-xl border border-slate-800 p-8 text-center text-slate-500">No hay registros de sRPE.</div>
+                        );
+
+                        return (
+                            <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+                                {/* Summary header */}
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-slate-400 uppercase bg-slate-900/70 border-b border-slate-700">
+                                            <tr>
+                                                <th className="px-5 py-3">Semana</th>
+                                                <th className="px-5 py-3 text-center">RPE Prom.</th>
+                                                <th className="px-5 py-3 text-center">Duración</th>
+                                                <th className="px-5 py-3 text-center">Sesiones</th>
+                                                <th className="px-5 py-3 text-center text-orange-400">sRPE Total</th>
+                                                <th className="px-5 py-3 text-center">Detalle</th>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                        </thead>
+                                        <tbody>
+                                            {weeks.map(wkData => {
+                                                const avgRpe = wkData.rpeCount > 0 ? (wkData.rpeSum / wkData.rpeCount).toFixed(1) : '-';
+                                                return (
+                                                    <React.Fragment key={wkData.week}>
+                                                        {/* Week summary row */}
+                                                        <tr className="border-b border-slate-800/60 bg-slate-900/30 hover:bg-slate-800/40 transition-colors cursor-pointer"
+                                                            onClick={() => setExpandedWk(expandedWk === wkData.week ? null : wkData.week)}>
+                                                            <td className="px-5 py-3 font-bold text-slate-200">
+                                                                <span className="inline-flex items-center gap-2">
+                                                                    <span className="text-orange-500 text-xs">{expandedWk === wkData.week ? '▾' : '▸'}</span>
+                                                                    Sem {wkData.week}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-5 py-3 text-center text-slate-300">{avgRpe}</td>
+                                                            <td className="px-5 py-3 text-center text-slate-300">{wkData.durSum} min</td>
+                                                            <td className="px-5 py-3 text-center text-slate-300">{wkData.sesSum}</td>
+                                                            <td className="px-5 py-3 text-center font-bold font-mono text-orange-400">{Math.round(wkData.srpeSum)}</td>
+                                                            <td className="px-5 py-3 text-center text-xs text-slate-500">{wkData.records.length} reg.</td>
+                                                        </tr>
+
+                                                        {/* Expanded per-record rows */}
+                                                        {expandedWk === wkData.week && wkData.records.map(log => (
+                                                            <tr key={log.id} className="border-b border-slate-800/30 bg-slate-950 hover:bg-slate-800/20 transition-colors text-xs">
+                                                                <td className="px-5 py-2 pl-10 font-mono text-slate-400">{log.fecha_sesion}</td>
+                                                                {editingId === log.id ? (
+                                                                    <td colSpan="4" className="px-5 py-2 flex flex-wrap gap-3 items-center">
+                                                                        <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">RPE</label><input type="number" min="1" max="10" value={editRpe} onChange={e => setEditRpe(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-14 text-white focus:border-orange-500 outline-none text-xs" /></div>
+                                                                        <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">Dur.</label><input type="number" min="1" value={editDuracion} onChange={e => setEditDuracion(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-16 text-white focus:border-orange-500 outline-none text-xs" /></div>
+                                                                        <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">Ses.</label><input type="number" min="1" value={editSesiones} onChange={e => setEditSesiones(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-14 text-white focus:border-orange-500 outline-none text-xs" /></div>
+                                                                        <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">ISO Wk</label><input type="number" min="1" max="53" value={editSemana} onChange={e => setEditSemana(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-14 text-white focus:border-orange-500 outline-none text-xs" /></div>
+                                                                    </td>
+                                                                ) : (
+                                                                    <>
+                                                                        <td className="px-5 py-2 text-center text-slate-400">{log.rpe}</td>
+                                                                        <td className="px-5 py-2 text-center text-slate-400">{log.duracion} min</td>
+                                                                        <td className="px-5 py-2 text-center text-slate-400">{log.sesiones || 1}</td>
+                                                                        <td className="px-5 py-2 text-center font-mono text-orange-400/80">{Math.round(parseFloat(log.srpe) || 0)}</td>
+                                                                    </>
+                                                                )}
+                                                                <td className="px-5 py-2 text-right flex justify-end gap-1.5">
+                                                                    {editingId === log.id ? (
+                                                                        <>
+                                                                            <button onClick={() => saveEdit(log)} className="text-green-500 hover:text-white hover:bg-green-600 bg-green-500/10 px-2 py-1 rounded text-[11px] transition-colors">Guardar</button>
+                                                                            <button onClick={() => setEditingId(null)} className="text-slate-400 hover:bg-slate-600 bg-slate-800 px-2 py-1 rounded text-[11px] transition-colors">Cancelar</button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <button onClick={() => startEdit(log)} className="text-blue-500 hover:text-white hover:bg-blue-600 bg-blue-500/10 px-2 py-1 rounded text-[11px] transition-colors">Editar</button>
+                                                                            <button onClick={() => handleDelete(log.id)} disabled={deletingId === log.id} className="text-red-500 hover:text-white hover:bg-red-600 bg-red-500/10 px-2 py-1 rounded text-[11px] transition-colors disabled:opacity-50">
+                                                                                {deletingId === log.id ? '...' : 'Eliminar'}
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </React.Fragment>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             );
         };

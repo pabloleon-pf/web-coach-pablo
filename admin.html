@@ -1116,35 +1116,34 @@
                 }
             };
 
-            // Calculate weekly data (pad from Week 1 to current week)
+            // Calculate weekly data — keyed by integer week, sorted numerically
             const currentIsoWeek = obtenerSemanaDelAno(new Date());
-            const maxLoggedWeek = logs.length > 0 ? Math.max(...logs.map(l => l.semana_del_ano)) : 0;
+            const maxLoggedWeek = logs.length > 0 ? Math.max(...logs.map(l => Number(l.semana_del_ano))) : 0;
             const maxWeekToDisplay = Math.max(currentIsoWeek, maxLoggedWeek);
 
-            const weeklyData = {};
+            // Build accumulator (integer keys to guarantee numeric sort)
+            const weeklyMap = {};
             for (let w = 1; w <= maxWeekToDisplay; w++) {
-                const weekStr = `Semana ${w}`;
-                weeklyData[weekStr] = { sumSrpe: 0, sumRpe: 0, count: 0, weekStr };
+                weeklyMap[w] = { week: w, weekStr: `S${w}`, sumSrpe: 0, sumRpe: 0, count: 0 };
             }
 
             logs.forEach(log => {
-                const weekStr = `Semana ${log.semana_del_ano}`;
-                if (weeklyData[weekStr]) {
-                    const currentSrpe = parseFloat(log.srpe);
-                    const currentRpe = parseFloat(log.rpe);
-
-                    if (!isNaN(currentSrpe)) weeklyData[weekStr].sumSrpe += currentSrpe;
-                    if (!isNaN(currentRpe)) {
-                        weeklyData[weekStr].sumRpe += currentRpe;
-                        weeklyData[weekStr].count += 1;
-                    }
+                const wk = Number(log.semana_del_ano);
+                if (weeklyMap[wk]) {
+                    const s = parseFloat(log.srpe);
+                    const r = parseFloat(log.rpe);
+                    if (!isNaN(s)) weeklyMap[wk].sumSrpe += s;
+                    if (!isNaN(r)) { weeklyMap[wk].sumRpe += r; weeklyMap[wk].count += 1; }
                 }
             });
 
-            const chartData = Object.values(weeklyData).map(d => ({
-                ...d,
-                avgRpe: d.count > 0 ? parseFloat((d.sumRpe / d.count).toFixed(1)) : 0
-            }));
+            // Sort by week number (ascending = chronological)
+            const chartData = Object.values(weeklyMap)
+                .sort((a, b) => a.week - b.week)
+                .map(d => ({
+                    ...d,
+                    avgRpe: d.count > 0 ? parseFloat((d.sumRpe / d.count).toFixed(1)) : 0
+                }));
 
             // Max values for chart scaling
             const maxVolume = Math.max(1000, ...chartData.map(d => d.sumSrpe)); // Min 1000 threshold
@@ -1288,7 +1287,7 @@
                                                     <circle cx={cx} cy={cy} r="4" fill="#1e293b" stroke="#f97316" strokeWidth="2.5"
                                                         className="transition-all duration-300 group-hover:scale-150 group-hover:fill-[#f97316]"
                                                     >
-                                                        <title>{`Semana ${d.weekStr.replace('Semana ', '')}: ${Math.round(d.sumSrpe)} sRPE`}</title>
+                                                        <title>{`Semana ${d.week}: ${Math.round(d.sumSrpe)} sRPE`}</title>
                                                     </circle>
                                                     {/* Volume value on top of point */}
                                                     <text x={cx} y={cy - 12}
@@ -1300,7 +1299,7 @@
                                                     {/* X-axis label */}
                                                     <text x={cx} y={svgH - padB + 16}
                                                         textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="monospace">
-                                                        {`S${d.weekStr.replace('Semana ', '')}`}
+                                                        {d.weekStr}
                                                     </text>
                                                 </g>
                                             );
@@ -1334,7 +1333,7 @@
                                                     <circle cx={cx} cy={cy} r="6" fill="#1e293b" stroke="#3b82f6" strokeWidth="2.5"
                                                         className="transition-transform duration-300 group-hover:scale-125 group-hover:fill-[#3b82f6]"
                                                     >
-                                                        <title>{`Semana ${d.weekStr.replace('Semana ', '')}: RPE Promedio ${d.avgRpe}`}</title>
+                                                        <title>{`Semana ${d.week}: RPE Promedio ${d.avgRpe}`}</title>
                                                     </circle>
                                                     <text x={cx} y={cy - 12}
                                                         textAnchor="middle" fill="#93c5fd" fontSize="11" fontWeight="bold" fontFamily="monospace"

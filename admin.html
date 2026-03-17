@@ -1036,12 +1036,21 @@
             const [newSesiones, setNewSesiones] = useState('1');
             const [saving, setSaving] = useState(false);
 
-            const obtenerSemanaDelAno = (fecha) => {
-                const d = new Date(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()));
-                const numDia = d.getUTCDay() || 7;
-                d.setUTCDate(d.getUTCDate() + 4 - numDia);
-                const inicioAno = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-                return Math.ceil((((d - inicioAno) / 86400000) + 1) / 7);
+            const obtenerSemanaDelAno = (fechaInput) => {
+                // Accept both a Date object and a 'YYYY-MM-DD' string.
+                // Parse strings as local noon to prevent UTC offset shifting the date to the previous day.
+                let d;
+                if (typeof fechaInput === 'string') {
+                    const [y, m, day] = fechaInput.split('-').map(Number);
+                    d = new Date(y, m - 1, day, 12, 0, 0);
+                } else {
+                    d = new Date(fechaInput);
+                }
+                // ISO 8601 week: shift to Thursday of the same week
+                const thu = new Date(d);
+                thu.setDate(d.getDate() + 4 - (d.getDay() || 7));
+                const yearStart = new Date(thu.getFullYear(), 0, 1);
+                return Math.ceil((((thu - yearStart) / 86400000) + 1) / 7);
             };
 
             const handleAddRecord = async (e) => {
@@ -1049,9 +1058,8 @@
                 if (!newFecha || !newRpe || !newDuracion) return alert('Completa todos los campos');
                 setSaving(true);
                 try {
-                    const fechaObj = new Date(newFecha + 'T12:00:00Z');
-                    const semana = obtenerSemanaDelAno(fechaObj);
-                    const anio = fechaObj.getFullYear();
+                    const semana = obtenerSemanaDelAno(newFecha); // string passed — parsed safely
+                    const anio = parseInt(newFecha.split('-')[0], 10);
                     const rpeVal = parseFloat(newRpe);
                     const durVal = parseInt(newDuracion, 10);
                     const sesionesVal = parseInt(newSesiones, 10) || 1;
@@ -1118,22 +1126,30 @@
 
             const startEdit = (log) => {
                 setEditingId(log.id);
-                setEditRpe(log.rpe);
-                setEditDuracion(log.duracion);
-                setEditSesiones(log.sesiones || 1);
+                // Always load as numbers to avoid string-multiplication bugs
+                setEditRpe(parseFloat(log.rpe) || '');
+                setEditDuracion(parseInt(log.duracion, 10) || '');
+                setEditSesiones(parseInt(log.sesiones, 10) || 1);
                 setEditSemana(log.semana_del_ano || '');
             };
 
             const saveEdit = async (log) => {
                 try {
                     const normalizedEmail = email.trim().toLowerCase();
+                    // Parse all values as numbers explicitly to prevent string-based multiplication errors
+                    const rpeVal = parseFloat(editRpe);
+                    const durVal = parseInt(editDuracion, 10);
                     const sesVal = parseInt(editSesiones, 10) || 1;
-                    const tiempoTotal = parseInt(editDuracion, 10) * sesVal;
-                    const newSrpe = parseFloat(editRpe) * tiempoTotal;
+                    if (isNaN(rpeVal) || isNaN(durVal)) {
+                        alert('RPE y Duración deben ser números válidos.');
+                        return;
+                    }
+                    // sRPE = RPE × minutos_por_sesion × nº_sesiones
+                    const newSrpe = rpeVal * durVal * sesVal;
                     await db.collection('athletes').doc(normalizedEmail).collection('monitoreo_diario').doc(log.id).update({
-                        rpe: editRpe,
-                        duracion: editDuracion,
-                        sesiones: parseInt(editSesiones, 10) || 1,
+                        rpe: rpeVal,
+                        duracion: durVal,
+                        sesiones: sesVal,
                         srpe: newSrpe,
                         semana_del_ano: parseInt(editSemana, 10) || log.semana_del_ano
                     });

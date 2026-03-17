@@ -214,9 +214,17 @@
                 </div>
             );
         };
-        const getISOWeek = (dateStr) => {
-            const d = new Date(dateStr);
-            d.setHours(0, 0, 0, 0);
+        const getISOWeek = (dateInput) => {
+            // Always work in local time to avoid UTC-midnight shifting the date to the previous day.
+            let d;
+            if (typeof dateInput === 'string') {
+                // YYYY-MM-DD — parse as local to prevent UTC offset issues
+                const [y, m, day] = dateInput.split('-').map(Number);
+                d = new Date(y, m - 1, day, 12, 0, 0);
+            } else {
+                d = new Date(dateInput);
+            }
+            // ISO 8601: shift to nearest Thursday
             d.setDate(d.getDate() + 4 - (d.getDay() || 7));
             const yearStart = new Date(d.getFullYear(), 0, 1);
             return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);

@@ -1023,6 +1023,7 @@
             const [loading, setLoading] = useState(true);
             const [deletingId, setDeletingId] = useState(null);
             const [editingId, setEditingId] = useState(null);
+            const [editFecha, setEditFecha] = useState('');
             const [editRpe, setEditRpe] = useState('');
             const [editDuracion, setEditDuracion] = useState('');
             const [editSesiones, setEditSesiones] = useState('');
@@ -1126,17 +1127,19 @@
 
             const startEdit = (log) => {
                 setEditingId(log.id);
+                setEditFecha(log.fecha_sesion || '');
                 // Always load as numbers to avoid string-multiplication bugs
                 setEditRpe(parseFloat(log.rpe) || '');
                 setEditDuracion(parseInt(log.duracion, 10) || '');
                 setEditSesiones(parseInt(log.sesiones, 10) || 1);
-                setEditSemana(log.semana_del_ano || '');
+                // Pre-fill semana from stored value; will be overridden if fecha changes
+                setEditSemana(Number(log.semana_del_ano) || '');
             };
 
             const saveEdit = async (log) => {
                 try {
                     const normalizedEmail = email.trim().toLowerCase();
-                    // Parse all values as numbers explicitly to prevent string-based multiplication errors
+                    // Parse all values as numbers explicitly
                     const rpeVal = parseFloat(editRpe);
                     const durVal = parseInt(editDuracion, 10);
                     const sesVal = parseInt(editSesiones, 10) || 1;
@@ -1144,19 +1147,27 @@
                         alert('RPE y Duración deben ser números válidos.');
                         return;
                     }
-                    // sRPE = RPE × minutos_por_sesion × nº_sesiones
+                    // sRPE = RPE × min/sesión × nº sesiones
                     const newSrpe = rpeVal * durVal * sesVal;
-                    await db.collection('athletes').doc(normalizedEmail).collection('monitoreo_diario').doc(log.id).update({
+                    // If fecha was edited, recalculate semana_del_ano from the new date
+                    const fechaFinal = editFecha || log.fecha_sesion || '';
+                    const semanaFinal = fechaFinal
+                        ? obtenerSemanaDelAno(fechaFinal)
+                        : (parseInt(editSemana, 10) || Number(log.semana_del_ano));
+                    const updatePayload = {
                         rpe: rpeVal,
                         duracion: durVal,
                         sesiones: sesVal,
                         srpe: newSrpe,
-                        semana_del_ano: parseInt(editSemana, 10) || log.semana_del_ano
-                    });
+                        semana_del_ano: semanaFinal
+                    };
+                    if (fechaFinal) updatePayload.fecha_sesion = fechaFinal;
+                    await db.collection('athletes').doc(normalizedEmail)
+                        .collection('monitoreo_diario').doc(log.id).update(updatePayload);
                     setEditingId(null);
                 } catch (err) {
-                    console.error("Error al actualizar:", err);
-                    alert("Hubo un error al actualizar el registro.");
+                    console.error('Error al actualizar:', err);
+                    alert('Hubo un error al actualizar el registro.');
                 }
             };
 
@@ -1172,13 +1183,12 @@
             }
 
             logs.forEach(log => {
-                // Use stored semana_del_ano for chart (works for both weekly-aggregate docs
-                // and individual session docs). Fall back to recalculating from fecha_sesion
-                // only when semana_del_ano is missing.
-                const storedWk = Number(log.semana_del_ano);
-                const wk = (!isNaN(storedWk) && storedWk > 0)
-                    ? storedWk
-                    : (log.fecha_sesion ? obtenerSemanaDelAno(log.fecha_sesion) : 0);
+                // Individual session docs HAVE fecha_sesion → always recalculate week from it
+                // (fixes any records saved with wrong semana_del_ano due to the timezone bug).
+                // Weekly aggregate docs (semana_X_2026) have NO fecha_sesion → trust semana_del_ano.
+                const wk = log.fecha_sesion
+                    ? obtenerSemanaDelAno(log.fecha_sesion)
+                    : (Number(log.semana_del_ano) || 0);
                 if (wk > 0 && weeklyMap[wk]) {
                     const s = parseFloat(log.srpe);
                     const r = parseFloat(log.rpe);
@@ -1417,13 +1427,11 @@
 
                         const grouped = {};
                         logs.forEach(log => {
-                            // Priority: stored semana_del_ano (correct for weekly-aggregate docs like semana_X_2026).
-                            // Fall back to recalculating from fecha_sesion for individual session docs
-                            // stored with wrong week due to the old timezone bug.
-                            const storedWk = Number(log.semana_del_ano);
-                            const wk = (!isNaN(storedWk) && storedWk > 0)
-                                ? storedWk
-                                : (log.fecha_sesion ? obtenerSemanaDelAno(log.fecha_sesion) : 0);
+                            // Same logic as chart: individual docs → recalculate from fecha_sesion;
+                            // aggregate docs (no fecha_sesion) → trust stored semana_del_ano.
+                            const wk = log.fecha_sesion
+                                ? obtenerSemanaDelAno(log.fecha_sesion)
+                                : (Number(log.semana_del_ano) || 0);
                             if (wk <= 0) return;
                             if (!grouped[wk]) grouped[wk] = { week: wk, rpeSum: 0, rpeCount: 0, durSum: 0, sesSum: 0, srpeSum: 0, records: [] };
                             const rpe = parseFloat(log.rpe) || 0;
@@ -1484,10 +1492,11 @@
                                                                 <td className="px-5 py-2 pl-10 font-mono text-slate-400">{log.fecha_sesion}</td>
                                                                 {editingId === log.id ? (
                                                                     <td colSpan="4" className="px-5 py-2 flex flex-wrap gap-3 items-center">
+                                                                        <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">Fecha</label><input type="date" value={editFecha} onChange={e => { setEditFecha(e.target.value); if (e.target.value) setEditSemana(obtenerSemanaDelAno(e.target.value)); }} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:border-orange-500 outline-none text-xs" /></div>
                                                                         <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">RPE</label><input type="number" min="1" max="10" value={editRpe} onChange={e => setEditRpe(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-14 text-white focus:border-orange-500 outline-none text-xs" /></div>
                                                                         <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">Dur.</label><input type="number" min="1" value={editDuracion} onChange={e => setEditDuracion(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-16 text-white focus:border-orange-500 outline-none text-xs" /></div>
                                                                         <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">Ses.</label><input type="number" min="1" value={editSesiones} onChange={e => setEditSesiones(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-14 text-white focus:border-orange-500 outline-none text-xs" /></div>
-                                                                        <div className="flex flex-col"><label className="text-[10px] text-slate-500 mb-0.5">ISO Wk</label><input type="number" min="1" max="53" value={editSemana} onChange={e => setEditSemana(e.target.value)} className="bg-slate-900 border border-slate-700 rounded px-2 py-1 w-14 text-white focus:border-orange-500 outline-none text-xs" /></div>
+                                                                        <div className="flex flex-col"><label className="text-[10px] text-slate-400 mb-0.5 font-mono">Sem. {editSemana || '?'}</label><span className="text-[10px] text-orange-400 mt-1">auto-calculada</span></div>
                                                                     </td>
                                                                 ) : (
                                                                     <>

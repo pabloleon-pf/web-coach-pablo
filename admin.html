@@ -1172,7 +1172,10 @@
             }
 
             logs.forEach(log => {
-                const wk = Number(log.semana_del_ano);
+                // Recalculate week from fecha_sesion for timezone-correctness
+                const wk = log.fecha_sesion
+                    ? obtenerSemanaDelAno(log.fecha_sesion)
+                    : Number(log.semana_del_ano);
                 if (weeklyMap[wk]) {
                     const s = parseFloat(log.srpe);
                     const r = parseFloat(log.rpe);
@@ -1404,10 +1407,16 @@
 
                     {/* Weekly Grouped Summary Table */}
                     {(() => {
-                        // Group logs by ISO week
+                        // Group logs by ISO week.
+                        // IMPORTANT: always recalculate the week from fecha_sesion using
+                        // the timezone-safe obtenerSemanaDelAno function. This corrects
+                        // any historical records whose semana_del_ano was stored incorrectly
+                        // due to the old UTC-midnight timezone bug (e.g. 2026-03-09 → wk10 instead of wk11).
                         const grouped = {};
                         logs.forEach(log => {
-                            const wk = log.semana_del_ano;
+                            const wk = log.fecha_sesion
+                                ? obtenerSemanaDelAno(log.fecha_sesion)
+                                : Number(log.semana_del_ano);
                             if (!grouped[wk]) grouped[wk] = { week: wk, rpeSum: 0, rpeCount: 0, durSum: 0, sesSum: 0, srpeSum: 0, records: [] };
                             const rpe = parseFloat(log.rpe) || 0;
                             const dur = parseInt(log.duracion) || 0;

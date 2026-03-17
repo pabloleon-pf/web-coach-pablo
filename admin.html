@@ -1172,11 +1172,14 @@
             }
 
             logs.forEach(log => {
-                // Recalculate week from fecha_sesion for timezone-correctness
-                const wk = log.fecha_sesion
-                    ? obtenerSemanaDelAno(log.fecha_sesion)
-                    : Number(log.semana_del_ano);
-                if (weeklyMap[wk]) {
+                // Use stored semana_del_ano for chart (works for both weekly-aggregate docs
+                // and individual session docs). Fall back to recalculating from fecha_sesion
+                // only when semana_del_ano is missing.
+                const storedWk = Number(log.semana_del_ano);
+                const wk = (!isNaN(storedWk) && storedWk > 0)
+                    ? storedWk
+                    : (log.fecha_sesion ? obtenerSemanaDelAno(log.fecha_sesion) : 0);
+                if (wk > 0 && weeklyMap[wk]) {
                     const s = parseFloat(log.srpe);
                     const r = parseFloat(log.rpe);
                     if (!isNaN(s)) weeklyMap[wk].sumSrpe += s;
@@ -1408,15 +1411,20 @@
                     {/* Weekly Grouped Summary Table */}
                     {(() => {
                         // Group logs by ISO week.
-                        // IMPORTANT: always recalculate the week from fecha_sesion using
-                        // the timezone-safe obtenerSemanaDelAno function. This corrects
-                        // any historical records whose semana_del_ano was stored incorrectly
-                        // due to the old UTC-midnight timezone bug (e.g. 2026-03-09 → wk10 instead of wk11).
+                        // Priority: stored semana_del_ano (correct for weekly-aggregate docs, e.g. semana_X_2026).
+                        // Fallback: recalculate from fecha_sesion (fixes individual session docs stored with
+                        // the wrong week due to the old UTC-midnight timezone bug).
+
                         const grouped = {};
                         logs.forEach(log => {
-                            const wk = log.fecha_sesion
-                                ? obtenerSemanaDelAno(log.fecha_sesion)
-                                : Number(log.semana_del_ano);
+                            // Priority: stored semana_del_ano (correct for weekly-aggregate docs like semana_X_2026).
+                            // Fall back to recalculating from fecha_sesion for individual session docs
+                            // stored with wrong week due to the old timezone bug.
+                            const storedWk = Number(log.semana_del_ano);
+                            const wk = (!isNaN(storedWk) && storedWk > 0)
+                                ? storedWk
+                                : (log.fecha_sesion ? obtenerSemanaDelAno(log.fecha_sesion) : 0);
+                            if (wk <= 0) return;
                             if (!grouped[wk]) grouped[wk] = { week: wk, rpeSum: 0, rpeCount: 0, durSum: 0, sesSum: 0, srpeSum: 0, records: [] };
                             const rpe = parseFloat(log.rpe) || 0;
                             const dur = parseInt(log.duracion) || 0;

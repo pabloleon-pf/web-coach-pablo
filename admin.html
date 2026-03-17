@@ -1173,7 +1173,13 @@
 
             // Calculate weekly data — keyed by integer week, sorted numerically
             const currentIsoWeek = obtenerSemanaDelAno(new Date());
-            const maxLoggedWeek = logs.length > 0 ? Math.max(...logs.map(l => Number(l.semana_del_ano))) : 0;
+            // Use the same week resolution as grouping: fecha_sesion → recalculate; no fecha_sesion → semana_del_ano.
+            // Filter out any 0/NaN so Math.max never blows up when records have missing fields.
+            const resolveWeek = (l) => l.fecha_sesion
+                ? obtenerSemanaDelAno(l.fecha_sesion)
+                : (Number(l.semana_del_ano) || 0);
+            const validWeeks = logs.map(resolveWeek).filter(w => w > 0);
+            const maxLoggedWeek = validWeeks.length > 0 ? Math.max(...validWeeks) : 0;
             const maxWeekToDisplay = Math.max(currentIsoWeek, maxLoggedWeek);
 
             // Build accumulator (integer keys to guarantee numeric sort)

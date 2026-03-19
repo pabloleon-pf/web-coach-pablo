@@ -215,25 +215,29 @@
             );
         };
         const getISOWeek = (dateInput) => {
-            // Always work in local time to avoid UTC-midnight shifting the date to the previous day.
-            let d;
+            let date;
             if (typeof dateInput === 'string') {
-                // YYYY-MM-DD — parse as local to prevent UTC offset issues
-                const [y, m, day] = dateInput.split('-').map(Number);
-                d = new Date(y, m - 1, day, 12, 0, 0);
+                const [year, month, day] = dateInput.split('-').map(Number);
+                date = new Date(year, month - 1, day);
             } else {
-                d = new Date(dateInput);
+                date = new Date(dateInput);
             }
-            // ISO 8601: shift to nearest Thursday
-            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-            const yearStart = new Date(d.getFullYear(), 0, 1);
-            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            if (isNaN(date.getTime())) return 'NaN';
+            
+            date.setHours(0, 0, 0, 0);
+            // Thursday in current week decides the year.
+            date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+            // January 4 is always in week 1.
+            const week1 = new Date(date.getFullYear(), 0, 4);
+            // Adjust to Thursday in week 1 and count number of weeks from date to week1.
+            return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
         };
 
         const SrpeModule = ({ email }) => {
             const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
             const [rpe, setRpe] = useState(null);
             const [duracion, setDuracion] = useState('90');
+            const [semanaManual, setSemanaManual] = useState('');
             const [loading, setLoading] = useState(false);
             const [history, setHistory] = useState([]);
 
@@ -251,10 +255,12 @@
                 e.preventDefault();
                 if (!fecha || !rpe || !duracion) return alert("Completa todos los campos (Fecha, RPE y Duración)");
                 setLoading(true);
-                const [year, month, day] = fecha.split('-');
+                
+                const [year, month, day] = fecha.split('-').map(Number);
                 const dateObj = new Date(year, month - 1, day);
                 const anio = dateObj.getFullYear();
-                const semana_del_ano = getISOWeek(fecha);
+                
+                const semana_del_ano = semanaManual ? parseInt(semanaManual) : getISOWeek(fecha);
                 const srpe = parseInt(rpe) * parseInt(duracion);
 
                 try {
@@ -269,6 +275,7 @@
                     });
                     setRpe(null);
                     setDuracion('90');
+                    setSemanaManual('');
                     alert("¡Registro guardado correctamente!");
                 } catch (error) {
                     console.error("Error", error);
@@ -280,7 +287,7 @@
             const scrollRef = useRef(null);
 
             const currentIsoWeek = getISOWeek(new Date());
-            const maxLoggedWeek = history.length > 0 ? Math.max(...history.map(l => l.semana_del_ano)) : 0;
+            const maxLoggedWeek = history.length > 0 ? Math.max(...history.map(l => parseInt(l.semana_del_ano) || 0)) : 0;
             const maxWeekToDisplay = Math.max(currentIsoWeek, maxLoggedWeek);
 
             const weeklyData = {};
@@ -290,7 +297,9 @@
             }
 
             history.forEach(log => {
-                const weekStr = `Semana ${log.semana_del_ano}`;
+                const wkNum = parseInt(log.semana_del_ano);
+                if (isNaN(wkNum)) return;
+                const weekStr = `Semana ${wkNum}`;
                 if (weeklyData[weekStr]) {
                     const currentSrpe = parseFloat(log.srpe);
                     const currentRpe = parseFloat(log.rpe);
@@ -329,6 +338,17 @@
                             <div>
                                 <label className="block text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Fecha de Sesión</label>
                                 <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} required className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Semana manual (opcional)</label>
+                                <input 
+                                    type="number" 
+                                    id="semanaManual" 
+                                    placeholder="Semana manual (opcional)" 
+                                    value={semanaManual}
+                                    onChange={e => setSemanaManual(e.target.value)}
+                                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs text-slate-400 uppercase tracking-widest font-semibold mb-2">Percepción de Esfuerzo (RPE 1-10)</label>

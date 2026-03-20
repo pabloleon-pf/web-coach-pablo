@@ -8,6 +8,21 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#FF6B00">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('ServiceWorker registrado con éxito');
+        })
+        .catch(err => {
+          console.log('Fallo al registrar ServiceWorker: ', err);
+        });
+    });
+  }
+</script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
